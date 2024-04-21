@@ -1,0 +1,50 @@
+[
+{
+  "directory": "/Users/jamie/Dev/spooky/cmake-build-debug",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/jamie/Dev/spooky/include -I/opt/homebrew/opt/glfw/include -I/opt/homebrew/Cellar/glew/include -F/Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -fcolor-diagnostics -F/Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/System/Library/Frameworks  -o CMakeFiles/spooky.dir/src/Camera.cpp.o -c /Users/jamie/Dev/spooky/src/Camera.cpp",
+  "file": "/Users/jamie/Dev/spooky/src/Camera.cpp",
+  "output": "CMakeFiles/spooky.dir/src/Camera.cpp.o"
+},
+{
+  "directory": "/Users/jamie/Dev/spooky/cmake-build-debug",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/jamie/Dev/spooky/include -I/opt/homebrew/opt/glfw/include -I/opt/homebrew/Cellar/glew/include -F/Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -fcolor-diagnostics -F/Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/System/Library/Frameworks  -o CMakeFiles/spooky.dir/src/CameraHolder.cpp.o -c /Users/jamie/Dev/spooky/src/CameraHolder.cpp",
+  "file": "/Users/jamie/Dev/spooky/src/CameraHolder.cpp",
+  "output": "CMakeFiles/spooky.dir/src/CameraHolder.cpp.o"
+},
+{
+  "directory": "/Users/jamie/Dev/spooky/cmake-build-debug",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/jamie/Dev/spooky/include -I/opt/homebrew/opt/glfw/include -I/opt/homebrew/Cellar/glew/include -F/Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -fcolor-diagnostics -F/Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/System/Library/Frameworks  -o CMakeFiles/spooky.dir/src/Cube.cpp.o -c /Users/jamie/Dev/spooky/src/Cube.cpp",
+  "file": "/Users/jamie/Dev/spooky/src/Cube.cpp",
+  "output": "CMakeFiles/spooky.dir/src/Cube.cpp.o"
+},
+{
+  "directory": "/Users/jamie/Dev/spooky/cmake-build-debug",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/jamie/Dev/spooky/include -I/opt/homebrew/opt/glfw/include -I/opt/homebrew/Cellar/glew/include -F/Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -fcolor-diagnostics -F/Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/System/Library/Frameworks  -o CMakeFiles/spooky.dir/src/Mesh.cpp.o -c /Users/jamie/Dev/spooky/src/Mesh.cpp",
+  "file": "/Users/jamie/Dev/spooky/src/Mesh.cpp",
+  "output": "CMakeFiles/spooky.dir/src/Mesh.cpp.o"
+},
+{
+  "directory": "/Users/jamie/Dev/spooky/cmake-build-debug",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/jamie/Dev/spooky/include -I/opt/homebrew/opt/glfw/include -I/opt/homebrew/Cellar/glew/include -F/Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -fcolor-diagnostics -F/Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/System/Library/Frameworks  -o CMakeFiles/spooky.dir/src/Model.cpp.o -c /Users/jamie/Dev/spooky/src/Model.cpp",
+  "file": "/Users/jamie/Dev/spooky/src/Model.cpp",
+  "output": "CMakeFiles/spooky.dir/src/Model.cpp.o"
+},
+{
+  "directory": "/Users/jamie/Dev/spooky/cmake-build-debug",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/jamie/Dev/spooky/include -I/opt/homebrew/opt/glfw/include -I/opt/homebrew/Cellar/glew/include -F/Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -fcolor-diagnostics -F/Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/System/Library/Frameworks  -o CMakeFiles/spooky.dir/src/Shader.cpp.o -c /Users/jamie/Dev/spooky/src/Shader.cpp",
+  "file": "/Users/jamie/Dev/spooky/src/Shader.cpp",
+  "output": "CMakeFiles/spooky.dir/src/Shader.cpp.o"
+},
+{
+  "directory": "/Users/jamie/Dev/spooky/cmake-build-debug",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/jamie/Dev/spooky/include -I/opt/homebrew/opt/glfw/include -I/opt/homebrew/Cellar/glew/include -F/Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -fcolor-diagnostics -F/Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/System/Library/Frameworks  -o CMakeFiles/spooky.dir/src/Terrain.cpp.o -c /Users/jamie/Dev/spooky/src/Terrain.cpp",
+  "file": "/Users/jamie/Dev/spooky/src/Terrain.cpp",
+  "output": "CMakeFiles/spooky.dir/src/Terrain.cpp.o"
+},
+{
+  "directory": "/Users/jamie/Dev/spooky/cmake-build-debug",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/jamie/Dev/spooky/include -I/opt/homebrew/opt/glfw/include -I/opt/homebrew/Cellar/glew/include -F/Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -fcolor-diagnostics -F/Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/System/Library/Frameworks  -o CMakeFiles/spooky.dir/src/main.cpp.o -c /Users/jamie/Dev/spooky/src/main.cpp",
+  "file": "/Users/jamie/Dev/spooky/src/main.cpp",
+  "output": "CMakeFiles/spooky.dir/src/main.cpp.o"
+}
+]

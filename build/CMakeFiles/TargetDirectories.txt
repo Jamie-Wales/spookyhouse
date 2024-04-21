@@ -1,0 +1,3 @@
+/Users/jamie/Dev/spooky/build/CMakeFiles/spooky.dir
+/Users/jamie/Dev/spooky/build/CMakeFiles/edit_cache.dir
+/Users/jamie/Dev/spooky/build/CMakeFiles/rebuild_cache.dir

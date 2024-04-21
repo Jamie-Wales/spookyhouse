@@ -1,0 +1,14 @@
+# Blender 4.0.2 MTL File: 'untitled.blend'
+# www.blender.org
+
+newmtl MineCart_Mat.001
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+map_Kd MineCart_Mat_albedo.jpeg
+map_Pm MineCart_Mat_metallic.jpeg
+map_Pr MineCart_Mat_roughness.jpeg
+
