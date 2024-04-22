@@ -1,26 +1,31 @@
 
 #ifndef INCLUDE_BOUNDINGBOX_H_
 #define INCLUDE_BOUNDINGBOX_H_
+
 #include <assimp/aabb.h>
+#include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <vector>
 
 struct BoundingBox {
     glm::vec3 min;
     glm::vec3 max;
+    glm::vec3 position{};
 
     BoundingBox()
         : min(glm::vec3(0.0f))
         , max(glm::vec3(0.0f))
     {
     }
+
     BoundingBox(const aiAABB& aabb)
     {
-        min = glm::vec3(aabb.mMin.x - 0.005, aabb.mMin.y- 0.005, aabb.mMin.z - 0.00);
-        max = glm::vec3(aabb.mMax.x + 0.005, aabb.mMax.y + 0.005, aabb.mMax.z + 0.005);
+        min = glm::vec3(aabb.mMin.x, aabb.mMin.y, aabb.mMin.z);
+        max = glm::vec3(aabb.mMax.x, aabb.mMax.y, aabb.mMax.z);
+        position = glm::vec3(0.0f);
     }
 
-    std::vector<glm::vec3> getCorners() const
+    [[nodiscard]] std::vector<glm::vec3> getCorners() const
     {
         return {
             glm::vec3(min.x, min.y, min.z),
@@ -34,18 +39,11 @@ struct BoundingBox {
         };
     }
 
-    void updateCorners(glm::mat4 model)
+    void updatePosition(const glm::vec3& newPosition)
     {
-        std::vector<glm::vec3> corners = getCorners();
-        for (auto& corner : corners) {
-            glm::vec4 transformed = model * glm::vec4(corner, 1.0f);
-            corner = glm::vec3(transformed);
-        }
-        min = max = corners[0];
-        for (auto& corner : corners) {
-            min = glm::min(min, corner);
-            max = glm::max(max, corner);
-        }
+        min += newPosition;
+        max += newPosition;
+        position += newPosition;
     }
 };
 

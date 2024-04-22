@@ -11,6 +11,7 @@
 #include <__errc>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/glm.hpp>
+#include <iomanip>
 #include <memory>
 
 glm::vec3 lightPos(0.0f, -1.0f, -0.3f);
@@ -86,12 +87,12 @@ auto width = 3000;
 
 auto projection = glm::perspective(glm::radians(45.0f),
     (float)width / (float)height, 0.1f, 1000.0f);
-float deltaTime = 0.0f;
+const float deltaTime = 1.0 / 60.0; // fixed time step of 1/60th second
 float lastFrame = 0.0f;
 bool firstMouse = true;
 float lastX = 0;
 float lastY = 0;
-
+double accumulator = 0.0;
 int main()
 {
 
@@ -121,7 +122,7 @@ int main()
     Shader basic("../src/basic.vert.glsl", "../src/basic.frag.glsl");
     auto leftDoor = std::make_shared<Model>(Model { "../assets/house/leftDoor/leftDoor.obj", glm::mat4(1.0f), glm::vec3(0), 1 });
     auto cartDoor = std::make_shared<Model>(Model { "../assets/track/cartDoor.obj", glm::mat4(1.0f), glm::vec3(0.0), 2 });
-    auto pipe = std::make_shared<Model>(Model { "../assets/track/doorLock.obj", glm::mat4(1.0f), glm::vec3(0.0), 3 });
+    auto pipe = std::make_shared<Model>(Model { "../assets/track/doorLock.obj", glm::mat4(1.0f), glm::vec3(0.0, 0.0, 1.0), 3 });
     auto minecart = std::make_shared<Model>(Model { "../assets/track/mineCart.obj", glm::mat4(1.0f), glm::vec3(0.0), 4 });
     auto wheelFront = std::make_shared<Model>("../assets/track/wheelBack.mtl.obj", glm::mat4(1.0f), glm::vec3(0.0), 5);
     auto wheelBack = std::make_shared<Model>("../assets/track/wheelFront.mtl.obj", glm::mat4(1.0f), glm::vec3(0.0), 6);
@@ -129,50 +130,57 @@ int main()
     Renderer renderer { projection, camera };
     float dim = 0.25;
 
-
     renderer.enqueue(shader, { leftDoor, cartDoor, pipe, minecart, wheelFront, wheelBack, track });
     auto world = physics::PhysicsWorld();
-    world.addModel(cartDoor);
     world.addModel(pipe);
     world.addModel(minecart);
+
+    Cube cube(pipe->boundingbox);
     std::shared_ptr<AnimationCycle> doorAnimation = initDoorAnimation(cartDoor, pipe, pSpline);
     auto hdAnimation = houseDoorAnimation(leftDoor);
-    world.applyForce(2, glm::vec3(1.0, 10.0, 1.0));
-    Cube cube(minecart->boundingbox);
+
+
+    auto lastFrameTime = static_cast<float>(glfwGetTime());
+
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.4f, 0.1f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        auto currentFrame = static_cast<float>(glfwGetTime());
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
-        world.tick(deltaTime);
+        float currentTime = static_cast<float>(glfwGetTime());
+        double frameTime = currentTime - lastFrameTime;
+        lastFrameTime = currentTime;
+        accumulator += frameTime;
+
+        while (accumulator >= deltaTime) {
+            world.tick(deltaTime);
+            accumulator -= deltaTime;
+        }
         renderer.renderAll();
+        doorAnimation->update(deltaTime);
+        hdAnimation->update(deltaTime);
 
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
             doorAnimation->nextState();
         }
         if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
-            world.applyForce(3, glm::vec3(0.0, 0.0, 1.0));
+            world.applyForce(3, glm::vec3(0.0, 0.0, 0.05));
         }
 
         if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-            world.applyForce(3, glm::vec3(0.0, 0.0, -1.0));
+            world.applyForce(3, glm::vec3(0.0, 0.0, -0.5));
         }
 
-
-        doorAnimation->update(deltaTime);
-        hdAnimation->update(deltaTime);
         basic.use();
         basic.setMat4("projection", projection);
         basic.setMat4("view", camera.getCameraView());
         glm::mat4 model = glm::mat4(1.0f);
-        basic.setVec4("color", glm::vec4(1.0,1.0,1.0,0.0));
+        basic.setVec4("color", glm::vec4(1.0, 1.0, 1.0, 0.0));
         basic.setMat4("model", model);
         cube.draw();
         GLenum err;
         while ((err = glGetError()) != GL_NO_ERROR) {
             std::cerr << "OpenGL error: " << err << std::endl;
         }
+
         processInput(window);
         glfwPollEvents();
         glfwSwapBuffers(window);

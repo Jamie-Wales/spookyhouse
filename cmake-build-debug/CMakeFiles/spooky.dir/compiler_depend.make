@@ -1221,27 +1221,6 @@ CMakeFiles/spooky.dir/src/Mesh.cpp.o: /Users/jamie/Dev/spooky/src/Mesh.cpp \
   /opt/homebrew/include/assimp/vector2.inl \
   /opt/homebrew/include/assimp/vector3.h \
   /opt/homebrew/include/assimp/vector3.inl \
-  /opt/homebrew/include/glm/detail/setup.hpp \
-  /opt/homebrew/include/glm/detail/type_mat2x2.hpp \
-  /opt/homebrew/include/glm/detail/type_mat2x3.hpp \
-  /opt/homebrew/include/glm/detail/type_mat2x4.hpp \
-  /opt/homebrew/include/glm/detail/type_mat3x2.hpp \
-  /opt/homebrew/include/glm/detail/type_mat3x3.hpp \
-  /opt/homebrew/include/glm/detail/type_mat3x4.hpp \
-  /opt/homebrew/include/glm/detail/type_mat4x2.hpp \
-  /opt/homebrew/include/glm/detail/type_mat4x3.hpp \
-  /opt/homebrew/include/glm/detail/type_mat4x4.hpp \
-  /opt/homebrew/include/glm/detail/type_vec2.hpp \
-  /opt/homebrew/include/glm/detail/type_vec3.hpp \
-  /opt/homebrew/include/glm/detail/type_vec4.hpp \
-  /opt/homebrew/include/glm/ext/scalar_int_sized.hpp \
-  /opt/homebrew/include/glm/ext/scalar_uint_sized.hpp \
-  /opt/homebrew/include/glm/ext/vector_int2.hpp \
-  /opt/homebrew/include/glm/ext/vector_int3.hpp \
-  /opt/homebrew/include/glm/ext/vector_int4.hpp \
-  /opt/homebrew/include/glm/ext/vector_uint2.hpp \
-  /opt/homebrew/include/glm/ext/vector_uint3.hpp \
-  /opt/homebrew/include/glm/ext/vector_uint4.hpp \
   /opt/homebrew/include/glm/ext/matrix_double2x2.hpp \
   /opt/homebrew/include/glm/ext/matrix_double2x2_precision.hpp \
   /opt/homebrew/include/glm/ext/matrix_double2x3.hpp \
@@ -1332,14 +1311,23 @@ CMakeFiles/spooky.dir/src/Mesh.cpp.o: /Users/jamie/Dev/spooky/src/Mesh.cpp \
   /opt/homebrew/include/glm/detail/setup.hpp \
   /opt/homebrew/include/glm/detail/type_half.hpp \
   /opt/homebrew/include/glm/detail/type_half.inl \
+  /opt/homebrew/include/glm/detail/type_mat2x2.hpp \
   /opt/homebrew/include/glm/detail/type_mat2x2.inl \
+  /opt/homebrew/include/glm/detail/type_mat2x3.hpp \
   /opt/homebrew/include/glm/detail/type_mat2x3.inl \
+  /opt/homebrew/include/glm/detail/type_mat2x4.hpp \
   /opt/homebrew/include/glm/detail/type_mat2x4.inl \
+  /opt/homebrew/include/glm/detail/type_mat3x2.hpp \
   /opt/homebrew/include/glm/detail/type_mat3x2.inl \
+  /opt/homebrew/include/glm/detail/type_mat3x3.hpp \
   /opt/homebrew/include/glm/detail/type_mat3x3.inl \
+  /opt/homebrew/include/glm/detail/type_mat3x4.hpp \
   /opt/homebrew/include/glm/detail/type_mat3x4.inl \
+  /opt/homebrew/include/glm/detail/type_mat4x2.hpp \
   /opt/homebrew/include/glm/detail/type_mat4x2.inl \
+  /opt/homebrew/include/glm/detail/type_mat4x3.hpp \
   /opt/homebrew/include/glm/detail/type_mat4x3.inl \
+  /opt/homebrew/include/glm/detail/type_mat4x4.hpp \
   /opt/homebrew/include/glm/detail/type_mat4x4.inl \
   /opt/homebrew/include/glm/detail/type_vec1.hpp \
   /opt/homebrew/include/glm/detail/type_vec1.inl \
@@ -1350,9 +1338,19 @@ CMakeFiles/spooky.dir/src/Mesh.cpp.o: /Users/jamie/Dev/spooky/src/Mesh.cpp \
   /opt/homebrew/include/glm/detail/type_vec4.hpp \
   /opt/homebrew/include/glm/detail/type_vec4.inl \
   /opt/homebrew/include/glm/exponential.hpp \
+  /opt/homebrew/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/include/glm/ext/scalar_uint_sized.hpp \
+  /opt/homebrew/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/include/glm/ext/vector_int3.hpp \
+  /opt/homebrew/include/glm/ext/vector_int4.hpp \
+  /opt/homebrew/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/include/glm/ext/vector_uint4.hpp \
   /opt/homebrew/include/glm/fwd.hpp \
   /opt/homebrew/include/glm/geometric.hpp \
-  /opt/homebrew/include/glm/glm.hpp \
+  /opt/homebrew/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/include/glm/gtc/constants.hpp \
+  /opt/homebrew/include/glm/gtc/constants.inl \
   /opt/homebrew/include/glm/integer.hpp \
   /opt/homebrew/include/glm/mat2x2.hpp \
   /opt/homebrew/include/glm/mat2x3.hpp \
@@ -1369,7 +1367,13 @@ CMakeFiles/spooky.dir/src/Mesh.cpp.o: /Users/jamie/Dev/spooky/src/Mesh.cpp \
   /opt/homebrew/include/glm/vec2.hpp \
   /opt/homebrew/include/glm/vec3.hpp \
   /opt/homebrew/include/glm/vec4.hpp \
-  /opt/homebrew/include/glm/vector_relational.hpp
+  /opt/homebrew/include/glm/vector_relational.hpp \
+  /opt/homebrew/include/glm/ext/matrix_transform.hpp \
+  /opt/homebrew/include/glm/ext/matrix_transform.inl \
+  /opt/homebrew/include/glm/ext/scalar_constants.inl \
+  /opt/homebrew/include/glm/glm.hpp \
+  /opt/homebrew/include/glm/vec2.hpp \
+  /opt/homebrew/include/glm/vec3.hpp
 
 CMakeFiles/spooky.dir/src/Model.cpp.o: /Users/jamie/Dev/spooky/src/Model.cpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/System/Library/Frameworks/AudioToolbox.framework/Headers/AUAudioUnit.h \
@@ -4614,8 +4618,10 @@ CMakeFiles/spooky.dir/src/main.cpp.o: /Users/jamie/Dev/spooky/src/main.cpp \
   /Users/jamie/Dev/spooky/include/Cube.h \
   /Users/jamie/Dev/spooky/include/Mesh.h \
   /Users/jamie/Dev/spooky/include/Model.h \
+  /Users/jamie/Dev/spooky/include/Object.h \
   /Users/jamie/Dev/spooky/include/Physics.h \
   /Users/jamie/Dev/spooky/include/Renderer.h \
+  /Users/jamie/Dev/spooky/include/Resolver.h \
   /Users/jamie/Dev/spooky/include/Shader.h \
   /Users/jamie/Dev/spooky/include/SweepPrune.h \
   /Users/jamie/Dev/spooky/include/lib/miniaudo.h \
@@ -4652,35 +4658,7 @@ CMakeFiles/spooky.dir/src/main.cpp.o: /Users/jamie/Dev/spooky/src/main.cpp \
   /opt/homebrew/include/assimp/vector2.inl \
   /opt/homebrew/include/assimp/vector3.h \
   /opt/homebrew/include/assimp/vector3.inl \
-  /opt/homebrew/include/glm/detail/setup.hpp \
-  /opt/homebrew/include/glm/detail/type_mat2x2.hpp \
-  /opt/homebrew/include/glm/detail/type_mat2x3.hpp \
-  /opt/homebrew/include/glm/detail/type_mat2x4.hpp \
-  /opt/homebrew/include/glm/detail/type_mat3x2.hpp \
-  /opt/homebrew/include/glm/detail/type_mat3x3.hpp \
-  /opt/homebrew/include/glm/detail/type_mat3x4.hpp \
-  /opt/homebrew/include/glm/detail/type_mat4x2.hpp \
-  /opt/homebrew/include/glm/detail/type_mat4x3.hpp \
-  /opt/homebrew/include/glm/detail/type_mat4x4.hpp \
-  /opt/homebrew/include/glm/detail/type_vec2.hpp \
-  /opt/homebrew/include/glm/detail/type_vec3.hpp \
-  /opt/homebrew/include/glm/detail/type_vec4.hpp \
-  /opt/homebrew/include/glm/ext/scalar_constants.hpp \
-  /opt/homebrew/include/glm/ext/scalar_int_sized.hpp \
-  /opt/homebrew/include/glm/ext/scalar_uint_sized.hpp \
-  /opt/homebrew/include/glm/ext/vector_int2.hpp \
-  /opt/homebrew/include/glm/ext/vector_int3.hpp \
-  /opt/homebrew/include/glm/ext/vector_int4.hpp \
-  /opt/homebrew/include/glm/ext/vector_uint2.hpp \
-  /opt/homebrew/include/glm/ext/vector_uint3.hpp \
-  /opt/homebrew/include/glm/ext/vector_uint4.hpp \
-  /opt/homebrew/include/glm/geometric.hpp \
-  /opt/homebrew/include/glm/ext/scalar_constants.hpp \
-  /opt/homebrew/include/glm/gtc/constants.hpp \
-  /opt/homebrew/include/glm/gtc/constants.inl \
-  /opt/homebrew/include/glm/matrix.hpp \
-  /opt/homebrew/include/glm/trigonometric.hpp \
-  /opt/homebrew/include/glm/ext/matrix_clip_space.inl \
+  /opt/homebrew/include/glm/common.hpp \
   /opt/homebrew/include/glm/ext/matrix_double2x2.hpp \
   /opt/homebrew/include/glm/ext/matrix_double2x2_precision.hpp \
   /opt/homebrew/include/glm/ext/matrix_double2x3.hpp \
@@ -4717,8 +4695,6 @@ CMakeFiles/spooky.dir/src/main.cpp.o: /Users/jamie/Dev/spooky/src/main.cpp \
   /opt/homebrew/include/glm/ext/matrix_float4x3_precision.hpp \
   /opt/homebrew/include/glm/ext/matrix_float4x4.hpp \
   /opt/homebrew/include/glm/ext/matrix_float4x4_precision.hpp \
-  /opt/homebrew/include/glm/ext/matrix_transform.inl \
-  /opt/homebrew/include/glm/ext/scalar_constants.inl \
   /opt/homebrew/include/glm/ext/vector_bool2.hpp \
   /opt/homebrew/include/glm/ext/vector_bool2_precision.hpp \
   /opt/homebrew/include/glm/ext/vector_bool3.hpp \
@@ -4773,14 +4749,23 @@ CMakeFiles/spooky.dir/src/main.cpp.o: /Users/jamie/Dev/spooky/src/main.cpp \
   /opt/homebrew/include/glm/detail/setup.hpp \
   /opt/homebrew/include/glm/detail/type_half.hpp \
   /opt/homebrew/include/glm/detail/type_half.inl \
+  /opt/homebrew/include/glm/detail/type_mat2x2.hpp \
   /opt/homebrew/include/glm/detail/type_mat2x2.inl \
+  /opt/homebrew/include/glm/detail/type_mat2x3.hpp \
   /opt/homebrew/include/glm/detail/type_mat2x3.inl \
+  /opt/homebrew/include/glm/detail/type_mat2x4.hpp \
   /opt/homebrew/include/glm/detail/type_mat2x4.inl \
+  /opt/homebrew/include/glm/detail/type_mat3x2.hpp \
   /opt/homebrew/include/glm/detail/type_mat3x2.inl \
+  /opt/homebrew/include/glm/detail/type_mat3x3.hpp \
   /opt/homebrew/include/glm/detail/type_mat3x3.inl \
+  /opt/homebrew/include/glm/detail/type_mat3x4.hpp \
   /opt/homebrew/include/glm/detail/type_mat3x4.inl \
+  /opt/homebrew/include/glm/detail/type_mat4x2.hpp \
   /opt/homebrew/include/glm/detail/type_mat4x2.inl \
+  /opt/homebrew/include/glm/detail/type_mat4x3.hpp \
   /opt/homebrew/include/glm/detail/type_mat4x3.inl \
+  /opt/homebrew/include/glm/detail/type_mat4x4.hpp \
   /opt/homebrew/include/glm/detail/type_mat4x4.inl \
   /opt/homebrew/include/glm/detail/type_vec1.hpp \
   /opt/homebrew/include/glm/detail/type_vec1.inl \
@@ -4791,11 +4776,20 @@ CMakeFiles/spooky.dir/src/main.cpp.o: /Users/jamie/Dev/spooky/src/main.cpp \
   /opt/homebrew/include/glm/detail/type_vec4.hpp \
   /opt/homebrew/include/glm/detail/type_vec4.inl \
   /opt/homebrew/include/glm/exponential.hpp \
-  /opt/homebrew/include/glm/ext/matrix_clip_space.hpp \
-  /opt/homebrew/include/glm/ext/matrix_transform.hpp \
+  /opt/homebrew/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/include/glm/ext/scalar_uint_sized.hpp \
+  /opt/homebrew/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/include/glm/ext/vector_int3.hpp \
+  /opt/homebrew/include/glm/ext/vector_int4.hpp \
+  /opt/homebrew/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/include/glm/ext/vector_uint4.hpp \
   /opt/homebrew/include/glm/fwd.hpp \
   /opt/homebrew/include/glm/geometric.hpp \
-  /opt/homebrew/include/glm/glm.hpp \
+  /opt/homebrew/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/include/glm/gtc/constants.hpp \
+  /opt/homebrew/include/glm/gtc/constants.inl \
   /opt/homebrew/include/glm/integer.hpp \
   /opt/homebrew/include/glm/mat2x2.hpp \
   /opt/homebrew/include/glm/mat2x3.hpp \
@@ -4813,6 +4807,18 @@ CMakeFiles/spooky.dir/src/main.cpp.o: /Users/jamie/Dev/spooky/src/main.cpp \
   /opt/homebrew/include/glm/vec3.hpp \
   /opt/homebrew/include/glm/vec4.hpp \
   /opt/homebrew/include/glm/vector_relational.hpp \
+  /opt/homebrew/include/glm/ext/matrix_clip_space.hpp \
+  /opt/homebrew/include/glm/ext/matrix_clip_space.inl \
+  /opt/homebrew/include/glm/ext/matrix_transform.hpp \
+  /opt/homebrew/include/glm/ext/matrix_transform.inl \
+  /opt/homebrew/include/glm/ext/scalar_constants.inl \
+  /opt/homebrew/include/glm/fwd.hpp \
+  /opt/homebrew/include/glm/geometric.hpp \
+  /opt/homebrew/include/glm/glm.hpp \
+  /opt/homebrew/include/glm/mat4x4.hpp \
+  /opt/homebrew/include/glm/trigonometric.hpp \
+  /opt/homebrew/include/glm/vec2.hpp \
+  /opt/homebrew/include/glm/vec3.hpp \
   /opt/homebrew/opt/glfw/include/GLFW/glfw3.h
 
 
@@ -4839,6 +4845,8 @@ CMakeFiles/spooky.dir/src/main.cpp.o: /Users/jamie/Dev/spooky/src/main.cpp \
 /opt/homebrew/include/assimp/Compiler/poppack1.h:
 
 /Users/jamie/Dev/spooky/include/SweepPrune.h:
+
+/Users/jamie/Dev/spooky/include/Object.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/usr/include/c++/v1/map:
 
@@ -5239,6 +5247,8 @@ CMakeFiles/spooky.dir/src/main.cpp.o: /Users/jamie/Dev/spooky/src/main.cpp \
 /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/arm_neon.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/usr/include/c++/v1/__type_traits/strip_signature.h:
+
+/Users/jamie/Dev/spooky/include/Resolver.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/usr/include/c++/v1/__type_traits/noexcept_move_assign_container.h:
 

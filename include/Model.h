@@ -32,6 +32,8 @@ public:
 
     {
         loadModel(path);
+        boundingbox.updatePosition(position)
+        ;
     }
 
     // draws the model, and thus all its meshes

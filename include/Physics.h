@@ -5,21 +5,18 @@
 #include "Model.h"
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
+#include "Resolver.h"
 #include <initializer_list>
 #include <memory>
 
 #define DAMPENING 0.93
 #define GRAVITY -9.8
-#define DECELERATION 0.65
+#define DECELERATION 0.9
 #define ZERO_THRESHOLD 0.00000000000001f
 
 namespace physics {
 
-struct Object {
-    glm::vec3 position, velocity, force;
-    float mass;
-    std::shared_ptr<Model> model;
-};
+
 class PhysicsWorld {
 private:
     std::unordered_map<int, std::shared_ptr<Object>> objects = {};
@@ -27,9 +24,7 @@ private:
     Collider collider;
 
 public:
-    PhysicsWorld() {
-
-    };
+    PhysicsWorld() = default;
 
     void addModel(std::shared_ptr<Model>& model)
     {
@@ -39,8 +34,7 @@ public:
         object.force = glm::vec3(0);
         object.mass = 1.0;
         object.model = model;
-        auto pObj = std::make_shared<Object>(object);
-        objects[model->id] = pObj;
+        objects[model->id] = std::make_shared<Object>(object);
         collider.addModel(model);
     }
 
@@ -71,23 +65,20 @@ public:
              glm::vec3 acceleration = object->force / object->mass;
              object->velocity += acceleration * dt;
              object->velocity *= DAMPENING;
-
              object->position += object->velocity;
-
              object->model->position += object->position * dt;
-             if (object->model->position.y <= 0) {
-                 object->position.y = 0;
-                 object->model->position.y = 0;
-                 object->velocity.y = 0;
-             }
-
-
-
-             object->force = glm::vec3(0);
-             object->velocity *= DECELERATION;
-             object->model->boundingbox.updateCorners(glm::translate(object->model->translation, object->model->position));
-             collider.collide(object->model);
-
+             object->model->boundingbox.updatePosition(object->position * dt);
+             collider.broadCollide(object->model);
+             for (auto& pairs: collider.broadphasePairs)
+                 collider.collisionCandidates.push_back({objects[pairs.a], objects[pairs.b]});
+            if (object->model->position.y < 0) {
+                object->position.y = 0;
+                object->model->position.y = 0;
+                object->velocity.y = 0;
+            }
+            collider.resolveCollisions();
+            object->force = glm::vec3(0);
+            object->velocity *= DECELERATION;
         }
     }
 };

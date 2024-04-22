@@ -12,7 +12,7 @@ public:
     GLuint vbo;
     GLuint ebo;
     Shader terrainShader = Shader("../src/terrain.vert.glsl", "../src/terrain.frag.glsl");
-    Terrain(float scale);
+    explicit Terrain(float scale);
     void LoadFromFile(const std::string& filename);
     void render(glm::mat4 proj, glm::mat4 view) const;
     float getHeight(int x, int z);

@@ -10,11 +10,9 @@ class Cube {
 public:
     GLuint VAO, VBO, EBO;
 
-    Cube(const BoundingBox& box) {
-        // Generate the corners of the bounding box
+    explicit Cube(const BoundingBox& box) {
         std::vector<glm::vec3> vertices = box.getCorners();
 
-        // Indices for the cube (12 triangles, 36 indices)
         std::vector<unsigned int> indices = {
                 0, 1, 2, 2, 1, 3,   // Front face
                 1, 5, 3, 5, 7, 3,   // Right face
@@ -24,7 +22,6 @@ public:
                 0, 4, 1, 1, 4, 5    // Bottom face
         };
 
-        // Setup OpenGL resources
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO);
@@ -37,7 +34,6 @@ public:
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-        // Position attribute
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
         glEnableVertexAttribArray(0);
 
