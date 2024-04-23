@@ -26,8 +26,11 @@ struct EndPoint {
 };
 
 struct sweepObject {
-    std::shared_ptr<Model> objectModel;
     int id;
+    Mesh &mesh;
+
+    sweepObject(int id, Mesh &mesh)
+            : id(id), mesh(mesh) {};
 };
 
 struct Pair {
@@ -41,9 +44,10 @@ public:
     std::vector<EndPoint> xEndPoints;
     std::vector<EndPoint> yEndPoints;
     std::vector<EndPoint> zEndPoints;
-    std::vector<sweepObject> objects;
     int id = 0;
-    std::unordered_map<std::shared_ptr<Model>, int> modelList;
+    std::unordered_map<int, std::vector<std::shared_ptr<sweepObject>>> modelToSweep;
+    std::unordered_map<int, std::shared_ptr<Model>> modToId;
+    std::unordered_map<int, std::shared_ptr<sweepObject>> sweepMap;
     std::map<std::pair<int, int>, std::set<char>> collisionMap;
     bool checked = false;
 
@@ -63,24 +67,31 @@ public:
 
     void addModel(std::shared_ptr<Model> objectModel) {
         AddObject(objectModel->id, objectModel);
-        modelList[objectModel] = objectModel->id;
     }
 
-    int AddObject(int id, std::shared_ptr<Model> &objectModel) {
-        int objectId = id;
-        BoundingBox box = objectModel->boundingbox;
-        objects.push_back({objectModel, objectId});
-        xEndPoints.push_back(EndPoint((objectId << 1), box.min.x));
-        xEndPoints.push_back(EndPoint((objectId << 1) | 1, box.max.x));
-        yEndPoints.push_back(EndPoint((objectId << 1), box.min.y));
-        yEndPoints.push_back(EndPoint((objectId << 1) | 1, box.max.y));
-        zEndPoints.push_back(EndPoint((objectId << 1), box.min.z));
-        zEndPoints.push_back(EndPoint((objectId << 1) | 1, box.max.z));
+    int AddObject(int modid, std::shared_ptr<Model> &objectModel) {
 
-        sweepEndpoints(xEndPoints, 'x', objectId, box);
-        sweepEndpoints(yEndPoints, 'y', objectId, box);
-        sweepEndpoints(zEndPoints, 'z', objectId, box);
-        return objectId;
+        for (auto &mesh: objectModel->meshes) {
+
+            modToId[id] = objectModel;
+            BoundingBox box = mesh.boundingbox;
+            if (box.position != objectModel->position)
+                box.updatePosition(objectModel->position - box.position);
+            std::shared_ptr<sweepObject> so = std::make_shared<sweepObject>(id, mesh);
+            sweepMap[so->id] = so;
+            modelToSweep[modid].push_back(so);
+            xEndPoints.emplace_back((id << 1), box.min.x);
+            xEndPoints.emplace_back((id << 1) | 1, box.max.x);
+            yEndPoints.emplace_back((id << 1), box.min.y);
+            yEndPoints.emplace_back((id << 1) | 1, box.max.y);
+            zEndPoints.emplace_back((id << 1), box.min.z);
+            zEndPoints.emplace_back((id << 1) | 1, box.max.z);
+            sweepEndpoints(xEndPoints, 'x', id, box);
+            sweepEndpoints(yEndPoints, 'y', id, box);
+            sweepEndpoints(zEndPoints, 'z', id, box);
+            id++;
+        }
+        return objectModel->id;
     }
 
     float getAxisValue(glm::vec3 &point, char axis) {
@@ -111,7 +122,7 @@ public:
     }
 
     void removePair(int a, int b, char axis) {
-       std::pair<int, int> objPair = std::minmax(a, b);
+        std::pair<int, int> objPair = std::minmax(a, b);
         collisionMap[objPair].erase(axis);
     }
 
@@ -159,7 +170,8 @@ public:
 
         EndPoint &current = endpoints[index];
         float newValue = getAxisValue(isMin ? box.min : box.max, axis);
-        int direction = (newValue > current.mValue) ? 1 : (newValue < current.mValue) ? -1 : 0;
+        int direction = (newValue > current.mValue) ? 1 : (newValue < current.mValue) ? -1
+                                                                                      : 0;
         current.mValue = newValue;
 
         if (direction == 0) {
@@ -168,9 +180,7 @@ public:
         } else {
             look(endpoints, index, axis, direction);
         }
-
     }
-
 
     void sweepEndpoints(std::vector<EndPoint> &endPoints, const char axis, int objectId, BoundingBox box) {
         int minIndex = -1;
@@ -189,19 +199,38 @@ public:
     }
 
     void UpdateObject(std::shared_ptr<Model> model) {
-        int objectId = modelList[model];
-        BoundingBox box = model->boundingbox;
-        sweepEndpoints(xEndPoints, 'x', objectId, box);
-        sweepEndpoints(yEndPoints, 'y', objectId, box);
-        sweepEndpoints(zEndPoints, 'z', objectId, box);
+        if (model->position == glm::vec3(0.0f)) return;
+
+        auto &vec = modelToSweep[model->id];
+
+        for (auto &sweep: vec) {
+            BoundingBox &bb = sweep->mesh.boundingbox;
+            if (bb.position != model->position)
+                bb.updatePosition(model->position - bb.position);
+            sweepEndpoints(xEndPoints, 'x', sweep->id, bb);
+            sweepEndpoints(yEndPoints, 'y', sweep->id, bb);
+            sweepEndpoints(zEndPoints, 'z', sweep->id, bb);
+        }
     }
 
+    void printTrueCollisions(std::vector<Pair> &trueCol) {
+        for (auto &coll: trueCol) {
+            std::cout << "TRUE COLLISION \n";
+            std::cout << coll.a << " " << coll.b << "\n";
+        }
+    }
 
-    std::vector<Pair> getTrueCollisions() {
-        std::vector<Pair> trueCollisions;
+    std::vector<std::pair<std::pair<std::shared_ptr<Model>, std::shared_ptr<Mesh>>, std::pair<std::shared_ptr<Model>, std::shared_ptr<Mesh>>>>
+    getTrueCollisions() {
+        std::vector<std::pair<std::pair<std::shared_ptr<Model>, std::shared_ptr<Mesh>>, std::pair<std::shared_ptr<Model>, std::shared_ptr<Mesh>>>> trueCollisions;
         for (const auto &entry: collisionMap) {
-            if (entry.second.size() == 3) { // Must have 'x', 'y', 'z'
-                trueCollisions.push_back({entry.first.first, entry.first.second, 'x'}); // Axis here is arbitrary
+            int firstId = entry.first.first;
+            int secondId = entry.first.second;
+            if (entry.second.size() == 3 && firstId != secondId) {
+                std::pair<std::pair<std::shared_ptr<Model>, std::shared_ptr<Mesh>>, std::pair<std::shared_ptr<Model>, std::shared_ptr<Mesh>>> p = {
+                        {modToId[firstId],  sweepMap[firstId]->mesh},
+                        {modToId[secondId], sweepMap[firstId]->mesh}};
+                trueCollisions.push_back(p);
             }
         }
         return trueCollisions;

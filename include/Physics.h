@@ -67,15 +67,14 @@ public:
             object->position += object->velocity;
             object->model->position += object->position * dt;
             object->model->boundingbox.updatePosition(object->position * dt);
-            collider.broadCollide(object->model);
-            for (auto& pairs : collider.broadphasePairs)
-                collider.collisionCandidates.push_back({ objects[pairs.a], objects[pairs.b] });
+            auto broadCollisions = collider.broadCollide(object->model);
+            collider.resolveCollisions(broadCollisions, objects):
             if (object->model->position.y < 0) {
                 object->position.y = 0;
                 object->model->position.y = 0;
                 object->velocity.y = 0;
             }
-            collider.resolveCollisions();
+            //collider.resolveCollisions();
             object->force = glm::vec3(0);
             object->velocity *= DECELERATION;
         }

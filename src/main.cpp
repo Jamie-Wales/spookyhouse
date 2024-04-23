@@ -139,6 +139,7 @@ int main()
     std::vector<std::shared_ptr<Model>> splineModels = { cartDoor, wheelFront, wheelBack };
     auto world = physics::PhysicsWorld();
     world.addModel(pipe);
+    world.addModel(minecart);
     Cube cube(pipe->boundingbox);
     std::shared_ptr<AnimationCycle> doorAnimation = initDoorAnimation(cartDoor, pipe, pSpline, minecart, splineModels);
     auto hdAnimation = houseDoorAnimation(rightDoor);

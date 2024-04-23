@@ -8,23 +8,8 @@
 #include "Object.h"
 #include <glm/glm.hpp>
 #include <iostream>
+#include "Collider.h"
 
-class CollisionPacket {
-public:
-    std::shared_ptr<physics::Object> obj;
-    BoundingBox box;
-    glm::vec3 r3Velocity;
-    glm::vec3 r3Position;
-
-    glm::vec3 velocity;
-    glm::vec3 normalizedVelocity;
-    glm::vec3 basePoint;
-
-    bool foundCollision;
-    float nearestDistance;
-
-    glm::vec3 intersectionPoint;
-};
 
 class Plane {
 public:

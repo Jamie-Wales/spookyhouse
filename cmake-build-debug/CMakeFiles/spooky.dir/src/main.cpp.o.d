@@ -1020,6 +1020,7 @@ CMakeFiles/spooky.dir/src/main.cpp.o: \
   /opt/homebrew/include/glm/trigonometric.hpp \
   /Users/jamie/Dev/spooky/include/Cube.h \
   /opt/homebrew/opt/glfw/include/GLFW/glfw3.h \
+  /Users/jamie/Dev/spooky/include/Instance.h \
   /Users/jamie/Dev/spooky/include/Physics.h \
   /Users/jamie/Dev/spooky/include/Collider.h \
   /Users/jamie/Dev/spooky/include/Object.h \
