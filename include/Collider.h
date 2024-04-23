@@ -22,8 +22,7 @@ public:
     void broadCollide(std::shared_ptr<Model>& model)
     {
         sweepAndPrune.UpdateObject(model);
-       broadphasePairs =  sweepAndPrune.getTrueCollisions();
-
+        broadphasePairs = sweepAndPrune.getTrueCollisions();
     }
 
     void resolveCollisions()
@@ -40,29 +39,27 @@ public:
 
             if (colPacketA->foundCollision) {
                 std::cout << colPacketA->r3Velocity.x << " " << colPacketA->r3Velocity.y << " " << colPacketA->r3Velocity.z << std::endl;
-                glm::vec3 displacementA = colPacketA->r3Position - pair.first->model->position;
+                glm::vec3 displacementA = colPacketA->r3Position;
                 std::cout << displacementA.x << " " << displacementA.y << " " << displacementA.z << std::endl;
                 std::cout << pair.first->model->position.x + displacementA.x << " " << pair.first->model->position.y + displacementA.y << " " << pair.first->model->position.z + displacementA.z << std::endl;
-                pair.first->model->position = displacementA;
-                pair.first->model->boundingbox.position = displacementA;
-                pair.first->velocity = glm::vec3(0.0);
-                pair.first->position = glm::vec3(0.0);
-
+                pair.first->model->position -= displacementA;
+                pair.first->model->boundingbox.position -= displacementA;
+                pair.first->velocity = displacementA;
+                pair.first->position = displacementA;
             }
 
             if (colPacketB->foundCollision) {
                 std::cout << colPacketB->r3Velocity.x << " " << colPacketB->r3Velocity.y << " " << colPacketB->r3Velocity.z << std::endl;
-                glm::vec3 displacementB = colPacketB->r3Position - pair.second->model->position;
+                glm::vec3 displacementB = colPacketB->r3Position;
                 std::cout << displacementB.x << " " << displacementB.y << " " << displacementB.z << std::endl;
                 std::cout << pair.second->model->position.x + displacementB.x << " " << pair.second->model->position.y + displacementB.y << " " << pair.second->model->position.z + displacementB.z << std::endl;
-                pair.second->model->position = displacementB;
-                pair.second->model->boundingbox.position = displacementB;
-                pair.second->velocity = glm::vec3(0.0);
-                pair.first->velocity = glm::vec3(0.0);
-                pair.first->position = glm::vec3(0.0);
-
+                pair.second->model->position -= displacementB;
+                pair.second->model->boundingbox.position -= displacementB;
+                pair.second->velocity = displacementB;
+                pair.first->position = displacementB;
             }
         }
+        collisionCandidates.clear();
     }
 };
 

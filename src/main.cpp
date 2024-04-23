@@ -3,6 +3,7 @@
 #include "Cube.h"
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
+#include "Instance.h"
 #include "Model.h"
 #include "Physics.h"
 #include "Renderer.h"
@@ -11,7 +12,6 @@
 #include <__errc>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/glm.hpp>
-#include <iomanip>
 #include <memory>
 
 glm::vec3 lightPos(0.0f, -1.0f, -0.3f);
@@ -22,8 +22,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 glm::vec3 p1(0.0, 0.009, 0.0);
 glm::vec3 p2(0.0, -0.0001, -0.005);
-glm::vec3 p3(0.0, 0.15, -0.8);
-glm::vec3 p4(0.0, 2.0, -2.4);
+glm::vec3 p3(0.0, 0.5, -0.8);
+glm::vec3 p4(0.0, 0.8, -2.4);
 auto spline = Spline(p1, p2, p3, p4, 200, 0.25, 0.5);
 auto pSpline = std::make_shared<Spline>(spline);
 
@@ -84,6 +84,7 @@ void processInput(GLFWwindow* window);
 auto height = 2000;
 Camera camera = {};
 auto width = 3000;
+int amount = 100000;
 
 auto projection = glm::perspective(glm::radians(45.0f),
     (float)width / (float)height, 0.1f, 1000.0f);
@@ -118,27 +119,29 @@ int main()
     }
 
     glEnable(GL_DEPTH_TEST);
+
     Shader shader("../src/modelLoading.vert.glsl", "../src/modelLoading.frag.glsl");
-    Shader basic("../src/basic.vert.glsl", "../src/basic.frag.glsl");
+    Shader treeShader("../src/tree.vert.glsl", "../src/tree.frag.glsl");
     auto leftDoor = std::make_shared<Model>(Model { "../assets/house/leftDoor/leftDoor.obj", glm::mat4(1.0f), glm::vec3(0), 1 });
-    auto cartDoor = std::make_shared<Model>(Model { "../assets/track/cartDoor.obj", glm::mat4(1.0f), glm::vec3(0.0), 2 });
-    auto pipe = std::make_shared<Model>(Model { "../assets/track/doorLock.obj", glm::mat4(1.0f), glm::vec3(0.0, 0.0, 1.0), 3 });
-    auto minecart = std::make_shared<Model>(Model { "../assets/track/mineCart.obj", glm::mat4(1.0f), glm::vec3(0.0), 4 });
-    auto wheelFront = std::make_shared<Model>("../assets/track/wheelBack.mtl.obj", glm::mat4(1.0f), glm::vec3(0.0), 5);
-    auto wheelBack = std::make_shared<Model>("../assets/track/wheelFront.mtl.obj", glm::mat4(1.0f), glm::vec3(0.0), 6);
-    auto track = std::make_shared<Model>("../assets/track/spokytrackobj.obj", glm::mat4(1.0f), glm::vec3(0.0), 7);
+    auto rightDoor = std::make_shared<Model>(Model { "../assets/house/rightDoor/rightDoor.obj", glm::mat4(1.0f), glm::vec3(0), 2 });
+    auto cartDoor = std::make_shared<Model>(Model { "../assets/track/cartDoor.obj", glm::mat4(1.0f), glm::vec3(0.0), 3 });
+    auto pipe = std::make_shared<Model>(Model { "../assets/track/doorLock.obj", glm::mat4(1.0f), glm::vec3(0.0, 0.0, 1.0), 4 });
+    auto minecart = std::make_shared<Model>(Model { "../assets/track/mineCart.obj", glm::mat4(1.0f), glm::vec3(0.0), 5 });
+    auto wheelFront = std::make_shared<Model>("../assets/track/wheelBack.obj", glm::mat4(1.0f), glm::vec3(0.0), 6);
+    auto wheelBack = std::make_shared<Model>("../assets/track/wheelFront.obj", glm::mat4(1.0f), glm::vec3(0.0), 7);
+    auto track = std::make_shared<Model>("../assets/track/spokytrackobj.obj", glm::mat4(1.0f), glm::vec3(0.0), 8);
+    auto tree = std::make_shared<Model>("../assets/tree/spookytree.obj", glm::mat4(1.0f), glm::vec3(0.0), 9);
     Renderer renderer { projection, camera };
     float dim = 0.25;
-
-    renderer.enqueue(shader, { leftDoor, cartDoor, pipe, minecart, wheelFront, wheelBack, track });
+    std::vector<glm::mat4> translations(amount);
+    initInstancedObject(amount, tree, translations);
+    renderer.enqueue(shader, { leftDoor, rightDoor, cartDoor, pipe, minecart, wheelFront, wheelBack, track });
+    std::vector<std::shared_ptr<Model>> splineModels = { cartDoor, wheelFront, wheelBack };
     auto world = physics::PhysicsWorld();
     world.addModel(pipe);
-    world.addModel(minecart);
-
     Cube cube(pipe->boundingbox);
-    std::shared_ptr<AnimationCycle> doorAnimation = initDoorAnimation(cartDoor, pipe, pSpline);
-    auto hdAnimation = houseDoorAnimation(leftDoor);
-
+    std::shared_ptr<AnimationCycle> doorAnimation = initDoorAnimation(cartDoor, pipe, pSpline, minecart, splineModels);
+    auto hdAnimation = houseDoorAnimation(rightDoor);
 
     auto lastFrameTime = static_cast<float>(glfwGetTime());
 
@@ -149,7 +152,6 @@ int main()
         double frameTime = currentTime - lastFrameTime;
         lastFrameTime = currentTime;
         accumulator += frameTime;
-
         while (accumulator >= deltaTime) {
             world.tick(deltaTime);
             accumulator -= deltaTime;
@@ -162,23 +164,29 @@ int main()
             doorAnimation->nextState();
         }
         if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
-            world.applyForce(3, glm::vec3(0.0, 0.0, 0.05));
+            world.applyForce(4, glm::vec3(0.0, 0.0, 0.05));
         }
-
         if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-            world.applyForce(3, glm::vec3(0.0, 0.0, -0.5));
+            world.applyForce(4, glm::vec3(0.0, 0.0, -0.5));
         }
 
-        basic.use();
-        basic.setMat4("projection", projection);
-        basic.setMat4("view", camera.getCameraView());
-        glm::mat4 model = glm::mat4(1.0f);
-        basic.setVec4("color", glm::vec4(1.0, 1.0, 1.0, 0.0));
-        basic.setMat4("model", model);
-        cube.draw();
         GLenum err;
         while ((err = glGetError()) != GL_NO_ERROR) {
             std::cerr << "OpenGL error: " << err << std::endl;
+        }
+
+        treeShader.use();
+        renderer.lightingShader(treeShader);
+        treeShader.setInt("texture_diffuse1", 0);
+        treeShader.setFloat("shininess", 3);
+        treeShader.setMat4("projection", projection);
+        treeShader.setMat4("view", camera.getCameraView());
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, tree->textures_loaded[0].id);
+        for (unsigned int i = 0; i < tree->meshes.size(); i++) {
+            glBindVertexArray(tree->meshes[i].VAO);
+            glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(tree->meshes[i].indices.size()), GL_UNSIGNED_INT, 0, amount);
+            glBindVertexArray(0);
         }
 
         processInput(window);

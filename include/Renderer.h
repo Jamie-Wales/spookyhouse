@@ -6,6 +6,7 @@
 #include <initializer_list>
 #include <memory>
 #include <unordered_map>
+
 class Renderer {
 
 private:

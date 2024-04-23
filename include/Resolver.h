@@ -107,10 +107,8 @@ void checkCollisions(const std::shared_ptr<CollisionPacket>& colPacket, std::sha
 {
     float minPenetrationDepth = std::numeric_limits<float>::infinity();
     glm::vec3 collisionNormal;
-
     for (auto& mesh : otherModel->meshes) {
         BoundingBox meshBox = mesh.boundingbox;
-
         if (checkAABBCollision(colPacket->box, meshBox) || checkAABBCollision(meshBox, colPacket->box)) {
             for (int j = 0; j + 2 < mesh.vertices.size(); j += 3) { // Ensures no out-of-bounds
                 Plane plane(mesh.vertices[j].position + otherModel->position,
@@ -120,9 +118,10 @@ void checkCollisions(const std::shared_ptr<CollisionPacket>& colPacket, std::sha
                     double signedDist = plane.signedDistanceTo(colPacket->basePoint);
                     if (std::fabs(signedDist) <= 1) { // Using std::fabs for double
                         colPacket->foundCollision = true;
-                        minPenetrationDepth = std::fabs(signedDist);
-                        collisionNormal = plane.normal;
-                        break;
+                        if (minPenetrationDepth > std::fabs(signedDist)) {
+                            minPenetrationDepth = std::fabs(signedDist);
+                            collisionNormal = plane.normal;
+                        }
                     }
                 }
             }
@@ -131,9 +130,8 @@ void checkCollisions(const std::shared_ptr<CollisionPacket>& colPacket, std::sha
 
     if (colPacket->foundCollision) {
         float resolveDistance = minPenetrationDepth + 0.1;
-        glm::vec3 displacement = resolveDistance * collisionNormal;
-        colPacket->r3Position -= displacement;
+        colPacket->r3Position = collisionNormal * resolveDistance;
     }
 }
 
-#endif // SPOOKY_RESOLVER_H
+#endif

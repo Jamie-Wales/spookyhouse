@@ -3,7 +3,6 @@
 //
 
 #include "Camera.h"
-#include <cstdio>
 
 void Camera::update()
 {

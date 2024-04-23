@@ -36,9 +36,9 @@ public:
     Mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std::vector<texture> textures, aiAABB boundingbox);
     void draw(Shader& shader);
     BoundingBox boundingbox;
+    unsigned int VAO, VBO, EBO;
 
 private:
-    unsigned int VAO, VBO, EBO;
     void setUpMesh();
 };
 

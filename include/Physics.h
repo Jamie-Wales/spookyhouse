@@ -3,9 +3,9 @@
 
 #include "Collider.h"
 #include "Model.h"
+#include "Resolver.h"
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
-#include "Resolver.h"
 #include <initializer_list>
 #include <memory>
 
@@ -15,7 +15,6 @@
 #define ZERO_THRESHOLD 0.00000000000001f
 
 namespace physics {
-
 
 class PhysicsWorld {
 private:
@@ -62,15 +61,15 @@ public:
     {
         for (auto& [id, object] : objects) {
             object->force += object->mass * gravity;
-             glm::vec3 acceleration = object->force / object->mass;
-             object->velocity += acceleration * dt;
-             object->velocity *= DAMPENING;
-             object->position += object->velocity;
-             object->model->position += object->position * dt;
-             object->model->boundingbox.updatePosition(object->position * dt);
-             collider.broadCollide(object->model);
-             for (auto& pairs: collider.broadphasePairs)
-                 collider.collisionCandidates.push_back({objects[pairs.a], objects[pairs.b]});
+            glm::vec3 acceleration = object->force / object->mass;
+            object->velocity += acceleration * dt;
+            object->velocity *= DAMPENING;
+            object->position += object->velocity;
+            object->model->position += object->position * dt;
+            object->model->boundingbox.updatePosition(object->position * dt);
+            collider.broadCollide(object->model);
+            for (auto& pairs : collider.broadphasePairs)
+                collider.collisionCandidates.push_back({ objects[pairs.a], objects[pairs.b] });
             if (object->model->position.y < 0) {
                 object->position.y = 0;
                 object->model->position.y = 0;

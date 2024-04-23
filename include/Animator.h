@@ -96,7 +96,7 @@ public:
     }
 };
 
-std::shared_ptr<AnimationCycle> initDoorAnimation(std::shared_ptr<Model> cartDoor, std::shared_ptr<Model> pipe, std::shared_ptr<Spline> spline)
+std::shared_ptr<AnimationCycle> initDoorAnimation(std::shared_ptr<Model> cartDoor, std::shared_ptr<Model> pipe, std::shared_ptr<Spline> spline, std::shared_ptr<Model> cart, std::vector<shared_ptr<Model>> splineModels)
 {
     BaseAnimation open(0, [](float delta, std::shared_ptr<Model> model) {
         return;
@@ -118,10 +118,13 @@ std::shared_ptr<AnimationCycle> initDoorAnimation(std::shared_ptr<Model> cartDoo
         model->position += glm::vec3(-0.05 * delta, 0, 0);
     });
 
-    BaseAnimation splineAnimation(2.0, [spline](float delta, std::shared_ptr<Model> model) {
+    BaseAnimation splineAnimation(2.0, [spline, splineModels](float delta, std::shared_ptr<Model> model) {
         if (spline->isAtEnd())
             return;
         model->position += spline->current();
+        for (auto& splineModel : splineModels) {
+            splineModel->position += spline->current();
+        }
         spline->addDelta(delta);
     });
 
@@ -131,7 +134,7 @@ std::shared_ptr<AnimationCycle> initDoorAnimation(std::shared_ptr<Model> cartDoo
     State openedState(cartDoor, std::make_shared<BaseAnimation>(open), false);
     State closingState(cartDoor, std::make_shared<BaseAnimation>(closing), true);
     State pipeClosingState(pipe, std::make_shared<BaseAnimation>(closingLeft), true);
-    State splineState(cartDoor, std::make_shared<BaseAnimation>(splineAnimation), true);
+    State splineState(cart, std::make_shared<BaseAnimation>(splineAnimation), true);
 
     auto closedStatePtr = std::make_shared<State>(closedState);
     auto pipeOpeningStatePtr = std::make_shared<State>(pipeOpeningState);

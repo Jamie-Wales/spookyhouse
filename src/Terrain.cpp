@@ -42,7 +42,7 @@ void Terrain::LoadFromFile(const std::string& filename)
 
 float Terrain::getHeight(int x, int z)
 {
-    return heightMap(x, z);
+    return heightMap(x, z) * scale;
 }
 
 void Terrain::populateBuffer()
