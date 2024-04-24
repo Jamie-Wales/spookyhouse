@@ -10,7 +10,7 @@
 struct BoundingBox {
     glm::vec3 min;
     glm::vec3 max;
-    glm::vec3 position{};
+    glm::vec3 position {};
 
     BoundingBox()
         : min(glm::vec3(0.0f))
@@ -37,6 +37,11 @@ struct BoundingBox {
             glm::vec3(max.x, min.y, max.z),
             glm::vec3(max.x, max.y, min.z)
         };
+    }
+
+    void copyPosition(glm::vec3 newPosition)
+    {
+        position = newPosition;
     }
 
     void updatePosition(const glm::vec3& newPosition)

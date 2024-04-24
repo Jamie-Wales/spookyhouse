@@ -5,11 +5,8 @@
 #ifndef SPOOKY_RESOLVER_H
 #define SPOOKY_RESOLVER_H
 
-#include "Object.h"
-#include <glm/glm.hpp>
-#include <iostream>
 #include "Collider.h"
-
+#include <glm/glm.hpp>
 
 class Plane {
 public:
@@ -40,27 +37,6 @@ public:
         return glm::dot(point, normal) + equation[3];
     }
 };
-
-void prepareCollision(const std::shared_ptr<CollisionPacket>& colPacket, const std::shared_ptr<physics::Object>& object)
-{
-    colPacket->obj = object;
-    colPacket->box = object->model->boundingbox;
-    colPacket->box.min -= colPacket->box.position;
-
-    colPacket->box.max -= colPacket->box.position;
-    colPacket->r3Position = object->model->position;
-    colPacket->r3Velocity = colPacket->obj->velocity;
-    colPacket->foundCollision = false;
-    colPacket->nearestDistance = std::numeric_limits<float>::max();
-    if (glm::length(colPacket->obj->velocity) > 0) {
-        colPacket->normalizedVelocity = glm::normalize(colPacket->obj->velocity);
-    } else {
-        colPacket->normalizedVelocity = glm::vec3(0.0f);
-    }
-    glm::vec3 bboxCenter = (colPacket->box.min + colPacket->box.max) * 0.5f;
-    colPacket->basePoint = bboxCenter + object->model->position;
-}
-
 typedef unsigned int uint32;
 #define in(a) ((uint32&)a)
 
@@ -90,33 +66,6 @@ bool checkAABBCollision(const BoundingBox& box1, BoundingBox& box2)
 
 void checkCollisions(const std::shared_ptr<CollisionPacket>& colPacket, std::shared_ptr<Model>& otherModel)
 {
-    float minPenetrationDepth = std::numeric_limits<float>::infinity();
-    glm::vec3 collisionNormal;
-    for (auto& mesh : otherModel->meshes) {
-        BoundingBox meshBox = mesh.boundingbox;
-        if (checkAABBCollision(colPacket->box, meshBox) || checkAABBCollision(meshBox, colPacket->box)) {
-            for (int j = 0; j + 2 < mesh.vertices.size(); j += 3) { // Ensures no out-of-bounds
-                Plane plane(mesh.vertices[j].position + otherModel->position,
-                    mesh.vertices[j + 1].position + otherModel->position,
-                    mesh.vertices[j + 2].position + otherModel->position);
-                if (plane.isFrontFacingTo(colPacket->normalizedVelocity)) {
-                    double signedDist = plane.signedDistanceTo(colPacket->basePoint);
-                    if (std::fabs(signedDist) <= 1) { // Using std::fabs for double
-                        colPacket->foundCollision = true;
-                        if (minPenetrationDepth > std::fabs(signedDist)) {
-                            minPenetrationDepth = std::fabs(signedDist);
-                            collisionNormal = plane.normal;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if (colPacket->foundCollision) {
-        float resolveDistance = minPenetrationDepth + 0.1;
-        colPacket->r3Position = collisionNormal * resolveDistance;
-    }
 }
 
 #endif

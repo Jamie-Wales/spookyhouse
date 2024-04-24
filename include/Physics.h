@@ -3,11 +3,10 @@
 
 #include "Collider.h"
 #include "Model.h"
-#include "Resolver.h"
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
-#include <initializer_list>
 #include <memory>
+#include <unordered_map>
 
 #define DAMPENING 0.93
 #define GRAVITY -9.8
@@ -68,13 +67,13 @@ public:
             object->model->position += object->position * dt;
             object->model->boundingbox.updatePosition(object->position * dt);
             auto broadCollisions = collider.broadCollide(object->model);
-            collider.resolveCollisions(broadCollisions, objects):
+            std::shared_ptr<std::unordered_map<int, std::shared_ptr<physics::Object>>> pObjects = std::make_shared<std::unordered_map<int, std::shared_ptr<physics::Object>>>(objects);
+            collider.resolveCollisions(broadCollisions, pObjects, dt);
             if (object->model->position.y < 0) {
                 object->position.y = 0;
                 object->model->position.y = 0;
                 object->velocity.y = 0;
             }
-            //collider.resolveCollisions();
             object->force = glm::vec3(0);
             object->velocity *= DECELERATION;
         }

@@ -165,10 +165,10 @@ int main()
             doorAnimation->nextState();
         }
         if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
-            world.applyForce(4, glm::vec3(0.0, 0.0, 0.05));
+            world.applyForce(4, glm::vec3(0.0, 0.0, 1.0));
         }
         if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-            world.applyForce(4, glm::vec3(0.0, 0.0, -0.5));
+            world.applyForce(4, glm::vec3(0.0, 0.0, -1.0));
         }
 
         GLenum err;

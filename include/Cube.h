@@ -1,25 +1,26 @@
 #ifndef CUBE_H
 #define CUBE_H
 
+#include "BoundingBox.h"
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <vector>
-#include "BoundingBox.h"
 
 class Cube {
 public:
     GLuint VAO, VBO, EBO;
 
-    explicit Cube(const BoundingBox& box) {
+    explicit Cube(const BoundingBox& box)
+    {
         std::vector<glm::vec3> vertices = box.getCorners();
 
         std::vector<unsigned int> indices = {
-                0, 1, 2, 2, 1, 3,   // Front face
-                1, 5, 3, 5, 7, 3,   // Right face
-                5, 4, 7, 4, 6, 7,   // Back face
-                4, 0, 6, 0, 2, 6,   // Left face
-                2, 3, 6, 3, 7, 6,   // Top face
-                0, 4, 1, 1, 4, 5    // Bottom face
+            0, 1, 2, 2, 1, 3, // Front face
+            1, 5, 3, 5, 7, 3, // Right face
+            5, 4, 7, 4, 6, 7, // Back face
+            4, 0, 6, 0, 2, 6, // Left face
+            2, 3, 6, 3, 7, 6, // Top face
+            0, 4, 1, 1, 4, 5 // Bottom face
         };
 
         glGenVertexArrays(1, &VAO);
@@ -40,13 +41,15 @@ public:
         glBindVertexArray(0);
     }
 
-    ~Cube() {
+    ~Cube()
+    {
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);
         glDeleteBuffers(1, &EBO);
     }
 
-    void draw() {
+    void draw()
+    {
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);

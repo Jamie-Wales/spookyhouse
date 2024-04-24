@@ -4603,6 +4603,7 @@ CMakeFiles/spooky.dir/src/main.cpp.o: /Users/jamie/Dev/spooky/src/main.cpp \
   /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stdint.h \
   /Users/jamie/Dev/spooky/include/Animator.h \
   /Users/jamie/Dev/spooky/include/BoundingBox.h \
+  /Users/jamie/Dev/spooky/include/BroadCollision.h \
   /Users/jamie/Dev/spooky/include/Camera.h \
   /Users/jamie/Dev/spooky/include/Collider.h \
   /Users/jamie/Dev/spooky/include/Cube.h \
@@ -4612,7 +4613,6 @@ CMakeFiles/spooky.dir/src/main.cpp.o: /Users/jamie/Dev/spooky/src/main.cpp \
   /Users/jamie/Dev/spooky/include/Object.h \
   /Users/jamie/Dev/spooky/include/Physics.h \
   /Users/jamie/Dev/spooky/include/Renderer.h \
-  /Users/jamie/Dev/spooky/include/Resolver.h \
   /Users/jamie/Dev/spooky/include/Shader.h \
   /Users/jamie/Dev/spooky/include/SweepPrune.h \
   /Users/jamie/Dev/spooky/include/lib/miniaudo.h \
@@ -4835,13 +4835,13 @@ CMakeFiles/spooky.dir/src/main.cpp.o: /Users/jamie/Dev/spooky/src/main.cpp \
 
 /Users/jamie/Dev/spooky/include/SweepPrune.h:
 
-/Users/jamie/Dev/spooky/include/Resolver.h:
-
 /Users/jamie/Dev/spooky/include/Object.h:
 
 /Users/jamie/Dev/spooky/include/Instance.h:
 
 /Users/jamie/Dev/spooky/include/Collider.h:
+
+/Users/jamie/Dev/spooky/include/BroadCollision.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/usr/include/c++/v1/set:
 

@@ -4,15 +4,43 @@
 
 #ifndef SPOOKY_OBJECT_H
 #define SPOOKY_OBJECT_H
+#include "Model.h"
 #include <glm/glm.hpp>
 #include <memory>
-#include "Model.h"
 namespace physics {
-    struct Object {
-        glm::vec3 position, velocity, force;
-        float mass;
-        std::shared_ptr<Model> model;
-    };
+struct Object {
+public:
+    Object() = default;
+    Object(glm::vec3 position, glm::vec3 velocity, glm::vec3 force, float mass, std::shared_ptr<Model> model)
+        : position(position)
+        , velocity(velocity)
+        , force(force)
+        , mass(mass)
+        , model(model)
+    {
+    }
+
+    Object(std::shared_ptr<Object> object)
+    {
+        this->position = object->position;
+        this->velocity = object->velocity;
+        this->force = object->force;
+        this->mass = object->mass;
+        this->model = object->model;
+    }
+    Object(Object& object)
+    {
+        this->position = object.position;
+        this->velocity = object.velocity;
+        this->force = object.force;
+        this->mass = object.mass;
+        this->model = object.model;
+    }
+
+    glm::vec3 position, velocity, force;
+    float mass;
+    std::shared_ptr<Model> model;
+};
 
 }
-#endif //SPOOKY_OBJECT_H
+#endif // SPOOKY_OBJECT_H

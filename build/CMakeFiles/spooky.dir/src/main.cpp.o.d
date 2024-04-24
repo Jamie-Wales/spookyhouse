@@ -1023,8 +1023,8 @@ CMakeFiles/spooky.dir/src/main.cpp.o: \
   /Users/jamie/Dev/spooky/include/Instance.h \
   /Users/jamie/Dev/spooky/include/Physics.h \
   /Users/jamie/Dev/spooky/include/Collider.h \
+  /Users/jamie/Dev/spooky/include/BroadCollision.h \
   /Users/jamie/Dev/spooky/include/Object.h \
-  /Users/jamie/Dev/spooky/include/Resolver.h \
   /Users/jamie/Dev/spooky/include/SweepPrune.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/usr/include/c++/v1/map \
   /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/usr/include/c++/v1/__tree \
