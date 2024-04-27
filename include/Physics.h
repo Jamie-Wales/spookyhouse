@@ -3,6 +3,7 @@
 
 #include "Collider.h"
 #include "Model.h"
+#include "Terrain.h"
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <memory>
@@ -63,8 +64,7 @@ public:
             glm::vec3 acceleration = object->force / object->mass;
             object->velocity += acceleration * dt;
             object->velocity *= DAMPENING;
-            if (object->model->id == 4)
-                object->position += object->velocity * dt;
+            object->position += object->velocity * dt;
             if (object->position.y < -terrain.getHeight(object->position.x, object->position.z)) {
                 object->position.y = -terrain.getHeight(object->position.x, object->position.z);
                 object->velocity.y = 0;

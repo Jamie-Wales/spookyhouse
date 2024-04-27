@@ -11,9 +11,9 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 # Add the executable target
 add_executable(spooky ${SOURCES})
 if(MSVC)
-  add_compile_options(/W4)
+    add_compile_options(/W4)
 else()
-  add_compile_options(-Wall -Wextra -Wpedantic)
+    add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 include_directories(include)

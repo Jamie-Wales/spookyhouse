@@ -88,7 +88,7 @@ auto width = 3000;
 int amount = 100000;
 
 auto projection = glm::perspective(glm::radians(45.0f),
-    (float)width / (float)height, 0.1f, 1000.0f);
+    (float)width / (float)height, 0.01f, 800.0f);
 const float deltaTime = 1.0 / 60.0; // fixed time step of 1/60th second
 float lastFrame = 0.0f;
 bool firstMouse = true;
@@ -123,7 +123,6 @@ int main()
 
     Shader shader("../src/modelLoading.vert.glsl", "../src/modelLoading.frag.glsl");
     Shader treeShader("../src/tree.vert.glsl", "../src/tree.frag.glsl");
-    Shader terShader("../src/terrain.vert.glsl", "../src/terrain.frag.glsl");
     auto leftDoor = std::make_shared<Model>(Model { "../assets/house/leftDoor/leftDoor.obj", glm::mat4(1.0f), glm::vec3(0), 1 });
     auto rightDoor = std::make_shared<Model>(Model { "../assets/house/rightDoor/rightDoor.obj", glm::mat4(1.0f), glm::vec3(0), 2 });
     auto cartDoor = std::make_shared<Model>(Model { "../assets/track/cartDoor.obj", glm::mat4(1.0f), glm::vec3(0.0), 3 });
@@ -134,8 +133,7 @@ int main()
     auto track = std::make_shared<Model>("../assets/track/spokytrackobj.obj", glm::mat4(1.0f), glm::vec3(0.0), 8);
     auto tree = std::make_shared<Model>("../assets/tree/spookytree.obj", glm::mat4(1.0f), glm::vec3(0.0), 9);
     auto house = std::make_shared<Model>("../assets/house/hh.obj", glm::mat4(1.0f), glm::vec3(0.0), 10);
-    auto outhouse = std::make_shared<Model>("../assets/Monster/outhouse.obj", glm::mat4(1.0f), glm::vec3(0.0), 11);
-    auto monster = std::make_shared<Model>("../assets/Monster/monster.obj", glm::mat4(1.0f), glm::vec3(0.0), 11);
+    auto monster = std::make_shared<Model>("../assets/monster/monster.obj", glm::mat4(1.0f), glm::vec3(1.1470, 0.0, 0.8994), 11);
     auto teeth = std::make_shared<Model>("../assets/Monster/teeth.obj", glm::mat4(1.0f), glm::vec3(0.0), 11);
     auto outhouseDoor = std::make_shared<Model>("../assets/Monster/door.obj", glm::mat4(1.0f), glm::vec3(0.0), 11);
     auto eyes = std::make_shared<Model>("../assets/Monster/eyes.obj", glm::mat4(1.0f), glm::vec3(0.0), 12);
@@ -150,13 +148,20 @@ int main()
 
     initInstancedObject(amount, tree, translations);
 
-    renderer.enqueue(shader, { outhouseDoor, outhouse, monster, teeth, eyes, track, house, leftDoor, rightDoor, minecart});
+    renderer.enqueue(shader, { outhouseDoor, monster, teeth, eyes, track, house, leftDoor, rightDoor, minecart });
     std::vector<std::shared_ptr<Model>> splineModels = { cartDoor, wheelFront, wheelBack };
     auto world = physics::PhysicsWorld();
-    Terrain terrain { 1 };
-
+    Terrain terrain { 1, { "../assets/Water texture.png", "../assets/rock 01.jpg", "../assets/rock02 texture.jpg", "../assets/tilable img 0044 verydark.png" }, 5.0f };
+    monster->position = glm::vec3(201.1470, 0, 300.8994);
+    camera.position.x = 230;
+    camera.position.z = 330;
     camera.position.y = -terrain.getHeight(camera.position.x, camera.position.z);
-            Cube cube(pipe->boundingbox);
+    camera.position.y += 20.0f;
+    monster->position.y = -terrain.getHeight(monster->position.x, monster->position.z);
+    monster->position.y += 0.5;
+    house->position = glm::vec3(230, -terrain.getHeight(230, 330), 330.0);
+    house->position.y += 0.5;
+    Cube cube(pipe->boundingbox);
     auto doorAnimation = initDoorAnimation(cartDoor, pipe, pSpline, minecart, splineModels);
     auto hdAnimation = houseDoorAnimation(rightDoor);
     auto outhouseanimation = initOuthouseDoorAnimation(outhouseDoor);
@@ -184,25 +189,24 @@ int main()
             outhouseDoor->origin.x -= 0.001;
         }
 
-        if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
-            outhouseDoor->origin.y -= 0.001;
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
-            outhouseDoor->origin.z -= 0.001;
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
-            std::cout << outhouseDoor->origin.x << " " << outhouseDoor->origin.y << " " << outhouseDoor->origin.z << std::endl;
-        }
-
         outhouseanimation->update(deltaTime);
         GLenum err;
         while ((err = glGetError()) != GL_NO_ERROR) {
             std::cerr << "OpenGL error: " << err << std::endl;
         }
 
-        terrain.render(projection, camera.getCameraView());
+        terrain.terrainShader.use();
+        terrain.terrainShader.setMat4("projection", projection);
+        terrain.terrainShader.setMat4("view", camera.getCameraView());
+        terrain.terrainShader.setMat4("model", glm::translate(glm::mat4(1.0), terrain.terposition));
+        terrain.terrainShader.setVec3("lightDir", lightPos);
+        terrain.terrainShader.setVec3("lightColor", glm::vec3(1.0f));
+        terrain.terrainShader.setVec3("viewPos", camera.position);
+        terrain.terrainShader.setMat4("model", glm::translate(glm::mat4(1.0), terrain.terposition));
+        terrain.terrainShader.setFloat("minHeight", terrain.minHeight);
+        terrain.terrainShader.setFloat("maxHeight", terrain.maxHeight);
+
+        terrain.render();
         treeShader.use();
         renderer.lightingShader(treeShader);
         treeShader.setInt("texture_diffuse1", 0);

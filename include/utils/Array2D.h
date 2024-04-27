@@ -2,7 +2,7 @@
 #include <ostream>
 #include <vector>
 
-template<typename T>
+template <typename T>
 class Array2D {
 public:
     std::shared_ptr<std::vector<std::vector<T>>> data = std::make_shared<std::vector<std::vector<T>>>();
@@ -10,10 +10,13 @@ public:
     int col;
 
     Array2D()
-            : row(0), col(0) {};
+        : row(0)
+        , col(0) {};
 
     Array2D(int row, int col)
-            : row(row), col(col) {
+        : row(row)
+        , col(col)
+    {
         (*data).resize(row);
         for (int i = 0; i < row; i++) {
             (*data)[i].resize(col);
@@ -21,7 +24,9 @@ public:
     }
 
     Array2D(int row, int col, T t)
-            : row(row), col(col) {
+        : row(row)
+        , col(col)
+    {
         (*data).resize(row);
         for (int i = 0; i < col; i++) {
             (*data)[i].resize(row);
@@ -31,9 +36,10 @@ public:
         }
     }
 
-
-    Array2D(int row, int col, T *ptr)
-            : row(row), col(col) {
+    Array2D(int row, int col, T* ptr)
+        : row(row)
+        , col(col)
+    {
         (*data).resize(row);
         for (int i = 0; i < row; i++) {
             (*data)[i].resize(col);
@@ -44,13 +50,15 @@ public:
         }
     }
 
-    Array2D(std::vector<std::vector<T>> data) {
+    Array2D(std::vector<std::vector<T>> data)
+    {
         this->data = std::make_shared<std::vector<std::vector<T>>>(data);
         this->row = data.size();
         this->col = data[0].size();
     };
 
-    T &operator()(int row, int col) {
+    T& operator()(int row, int col) const
+    {
         if (row > this->row || col > this->col || row < 0 || col < 0) {
             std::cerr << "Array2D out of bound" << std::endl;
             return (*data)[0][0];
@@ -58,8 +66,8 @@ public:
         return (*data)[row][col];
     }
 
-
-    void GetMinMax(T &Min, T &Max) {
+    void GetMinMax(T& Min, T& Max)
+    {
         Max = Min = (*data)[0][0];
 
         for (int i = 1; i < col; i++)
@@ -74,7 +82,8 @@ public:
             }
     }
 
-    void normalize(T minRange, T maxRange) {
+    void normalize(T minRange, T maxRange)
+    {
         T min, max;
         GetMinMax(min, max);
         if (max <= min) {
@@ -86,6 +95,5 @@ public:
         for (int i = 0; i < col; i++)
             for (int j = 0; j < row; j++)
                 (*data)[i][j] = (((*data)[i][j] - min) / minmaxdelta) * minmarange + minRange;
-
     }
 };

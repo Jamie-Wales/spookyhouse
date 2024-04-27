@@ -17,7 +17,7 @@ void Camera::update()
 
 void Camera::updatePosition(float dt, Terrain& terrain)
 {
-    velocity = Approach(velocityTarget, velocity, dt * 30.0f);
+    velocity = Approach(velocityTarget, velocity, dt * 500.0f);
     position += velocity * dt;
     velocity += velocity * dt;
 }
@@ -26,9 +26,11 @@ void Camera::decrease(float deltaTime)
     options.velocity *= deltaTime;
     update();
 }
-void Camera::checkXpos(Terrain& terrain) {
-    if (this->position.x < terrain.getHeight(this->position.x, this->position.z)) {
-        this->position.x = terrain.getHeight(this->position.x, this->position.z);
+void Camera::checkXpos(Terrain& terrain)
+{
+    if (this->position.y < -terrain.getTerPosition(this->position.x, this->position.z)) {
+        this->position.y = glm::mix(terrain.getTerPosition(this->position.x, this->position.z), this->position.y, 0.1f);
+        update();
     }
 }
 glm::mat4 Camera::getCameraView()
@@ -63,16 +65,16 @@ void Camera::processKeyboard(Camera::Movement movement, float deltaTime, bool do
     if (down) {
         switch (movement) {
         case Movement::FORWARD:
-            velocityTarget = front * 30.0f * deltaTime;
+            velocityTarget = front * 1000.0f * deltaTime;
             break;
         case Movement::BACKWARD:
-            velocityTarget = -front * 30.0f * deltaTime;
+            velocityTarget = -front * 1000.0f * deltaTime;
             break;
         case Movement::LEFT:
-            velocityTarget = -right * 30.0f * deltaTime;
+            velocityTarget = -right * 1000.0f * deltaTime;
             break;
         case Movement::RIGHT:
-            velocityTarget = right * 30.0f * deltaTime;
+            velocityTarget = right * 1000.0f * deltaTime;
             break;
         }
 

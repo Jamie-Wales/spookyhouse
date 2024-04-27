@@ -25,7 +25,7 @@ public:
     glm::vec3 origin = glm::vec3(0.0f, 0.0f, 0.0f);
 
     int id;
-    float scale = 1.0f;
+    float scale = 20.0f;
 
     Model(string const& path, glm::mat4 translation, glm::vec3 position, int id, bool gamma = false)
         : gammaCorrection(gamma)

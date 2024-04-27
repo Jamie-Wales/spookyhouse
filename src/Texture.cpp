@@ -76,8 +76,7 @@ void Texture::LoadRaw(int Width, int Height, int BPP, const unsigned char* pImag
     LoadInternal(pImageData);
 }
 
-
- void Texture::LoadInternal(const void* pImageData)
+void Texture::LoadInternal(const void* pImageData)
 {
     glGenTextures(1, &m_textureObj);
     glBindTexture(m_textureTarget, m_textureObj);
@@ -113,9 +112,7 @@ void Texture::LoadRaw(int Width, int Height, int BPP, const unsigned char* pImag
     glTexParameteri(m_textureTarget, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(m_textureTarget, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(m_textureTarget, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
     glGenerateMipmap(m_textureTarget);
-
     glBindTexture(m_textureTarget, 0);
 }
 
@@ -124,6 +121,3 @@ void Texture::Bind(GLenum TextureUnit)
     glActiveTexture(TextureUnit);
     glBindTexture(m_textureTarget, m_textureObj);
 }
-
-
-

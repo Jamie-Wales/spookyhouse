@@ -2,6 +2,7 @@
 #define INCLUDE_INCLUDE_INSTANCE_H_
 
 #include "Model.h"
+#include "Terrain.h"
 #include <memory>
 void initInstancedObject(int amount, std::shared_ptr<Model>& pModel, std::vector<glm::mat4>& translations)
 {
