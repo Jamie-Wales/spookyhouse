@@ -15,7 +15,7 @@ void Camera::update()
     up = glm::normalize(glm::cross(right, front));
 }
 
-void Camera::updatePosition(float dt)
+void Camera::updatePosition(float dt, Terrain& terrain)
 {
     velocity = Approach(velocityTarget, velocity, dt * 30.0f);
     position += velocity * dt;
@@ -26,7 +26,11 @@ void Camera::decrease(float deltaTime)
     options.velocity *= deltaTime;
     update();
 }
-
+void Camera::checkXpos(Terrain& terrain) {
+    if (this->position.x < terrain.getHeight(this->position.x, this->position.z)) {
+        this->position.x = terrain.getHeight(this->position.x, this->position.z);
+    }
+}
 glm::mat4 Camera::getCameraView()
 {
     return glm::lookAt(position, position + front, up);
@@ -54,7 +58,7 @@ void Camera::processMouseMovement(float x, float y)
     update();
 }
 
-void Camera::processKeyboard(Camera::Movement movement, float deltaTime, bool down)
+void Camera::processKeyboard(Camera::Movement movement, float deltaTime, bool down, Terrain& terrain)
 {
     if (down) {
         switch (movement) {
@@ -89,5 +93,5 @@ void Camera::processKeyboard(Camera::Movement movement, float deltaTime, bool do
         }
     }
     update();
-    updatePosition(deltaTime);
+    updatePosition(deltaTime, terrain);
 }

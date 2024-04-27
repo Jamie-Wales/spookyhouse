@@ -8,10 +8,10 @@
 #include <memory>
 #include <unordered_map>
 
-#define DAMPENING 0.93
+#define DAMPENING 0.96
 #define GRAVITY -9.8
-#define DECELERATION 0.9
-#define ZERO_THRESHOLD 0.00000000000001f
+#define DECELERATION 0.95
+#define ZERO_THRESHOLD 0.000000000000000000000000000001
 
 namespace physics {
 
@@ -27,7 +27,7 @@ public:
     void addModel(std::shared_ptr<Model>& model)
     {
         Object object;
-        object.position = glm::vec3(0);
+        object.position = glm::vec3(model->position);
         object.velocity = glm::vec3(0);
         object.force = glm::vec3(0);
         object.mass = 1.0;
@@ -56,30 +56,33 @@ public:
         }
     }
 
-    void tick(float dt)
+    void tick(float dt, Terrain& terrain)
     {
         for (auto& [id, object] : objects) {
             object->force += object->mass * gravity;
             glm::vec3 acceleration = object->force / object->mass;
             object->velocity += acceleration * dt;
             object->velocity *= DAMPENING;
-            object->position += object->velocity;
-            object->model->position += object->position * dt;
-            object->model->boundingbox.updatePosition(object->position * dt);
+            if (object->model->id == 4)
+                object->position += object->velocity * dt;
+            if (object->position.y < -terrain.getHeight(object->position.x, object->position.z)) {
+                object->position.y = -terrain.getHeight(object->position.x, object->position.z);
+                object->velocity.y = 0;
+            }
+            object->model->boundingbox.updateDifference(object->position);
             auto broadCollisions = collider.broadCollide(object->model);
             std::shared_ptr<std::unordered_map<int, std::shared_ptr<physics::Object>>> pObjects = std::make_shared<std::unordered_map<int, std::shared_ptr<physics::Object>>>(objects);
             collider.resolveCollisions(broadCollisions, pObjects, dt);
-            if (object->model->position.y < 0) {
-                object->position.y = 0;
-                object->model->position.y = 0;
-                object->velocity.y = 0;
-            }
+            object->model->position = object->position;
             object->force = glm::vec3(0);
             object->velocity *= DECELERATION;
+
+            if (glm::length(object->velocity) < ZERO_THRESHOLD) {
+                object->velocity = glm::vec3(0);
+            }
         }
     }
 };
-
-};
+}
 
 #endif

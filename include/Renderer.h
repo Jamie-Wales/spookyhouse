@@ -73,6 +73,7 @@ public:
 
             for (auto modelPtr : value) {
                 glm::mat4 model = glm::translate(modelPtr->translation, modelPtr->position);
+                model = glm::scale(model, glm::vec3(modelPtr->scale));
                 shader->setMat4("model", model);
                 modelPtr->Draw(*shader);
             }

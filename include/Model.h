@@ -22,7 +22,10 @@ public:
     glm::mat4 translation;
     BoundingBox boundingbox;
     glm::vec3 position;
+    glm::vec3 origin = glm::vec3(0.0f, 0.0f, 0.0f);
+
     int id;
+    float scale = 1.0f;
 
     Model(string const& path, glm::mat4 translation, glm::vec3 position, int id, bool gamma = false)
         : gammaCorrection(gamma)
@@ -32,11 +35,18 @@ public:
 
     {
         loadModel(path);
-        boundingbox.updatePosition(position)
-        ;
+        boundingbox.addPostion(position);
+    }
+    void setScale(float scale)
+    {
+        this->scale = scale;
     }
 
-    // draws the model, and thus all its meshes
+    void setOrigin(glm::vec3 origin)
+    {
+        this->origin = origin;
+    }
+
     void Draw(Shader& shader)
     {
         for (unsigned int i = 0; i < meshes.size(); i++)

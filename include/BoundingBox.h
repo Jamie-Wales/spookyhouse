@@ -44,11 +44,19 @@ struct BoundingBox {
         position = newPosition;
     }
 
-    void updatePosition(const glm::vec3& newPosition)
+    void addPostion(const glm::vec3& newPosition)
     {
         min += newPosition;
         max += newPosition;
         position += newPosition;
+    }
+
+    void updateDifference(const glm::vec3 newPosition)
+    {
+        glm::vec3 difference = newPosition - position;
+        min += difference;
+        max += difference;
+        position = newPosition;
     }
 };
 

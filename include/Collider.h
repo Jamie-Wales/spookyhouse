@@ -61,24 +61,21 @@ class Collider {
 public:
     SweepAndPrune sweepAndPrune;
 
-    void addModel(std::shared_ptr<Model>& model)
-    {
+    void addModel(std::shared_ptr<Model> &model) {
         sweepAndPrune.addModel(model);
     }
 
-    void checkCollision(const std::shared_ptr<CollisionPacket>& colPacket, Sphere& secondMesh)
-    {
-        Sphere& collpacketSphere = colPacket->sphere;
+    void checkCollision(const std::shared_ptr<CollisionPacket> &colPacket, Sphere &secondMesh) {
+        Sphere &collpacketSphere = colPacket->sphere;
     }
+
     std::vector<BroadCollision>
-    broadCollide(std::shared_ptr<Model>& model)
-    {
+    broadCollide(std::shared_ptr<Model> &model) {
         sweepAndPrune.UpdateObject(model);
         return sweepAndPrune.getTrueCollisions();
     }
 
-    void checkCollisions(const std::shared_ptr<CollisionPacket>& colPacket, Sphere& secondMesh)
-    {
+    void checkCollisions(const std::shared_ptr<CollisionPacket> &colPacket, Sphere &secondMesh) {
         if (checkSphereCollision(colPacket->sphere, secondMesh)) {
             colPacket->foundCollision = true;
             colPacket->intersectionPoint = (colPacket->sphere.center + secondMesh.center) / 2.0f;
@@ -88,37 +85,43 @@ public:
 
     void
     resolveCollisions(
-        std::vector<BroadCollision> broadphasePairs,
-        std::shared_ptr<std::unordered_map<int, std::shared_ptr<physics::Object>>> objectMap, float dt)
-    {
-        for (auto& pair : broadphasePairs) {
-            auto sphere = boundingBoxToSphere(pair.firstMesh->boundingbox);
-            auto sphere2 = boundingBoxToSphere(pair.secondMesh->boundingbox);
+            std::vector<BroadCollision> broadphasePairs,
+            std::shared_ptr<std::unordered_map<int, std::shared_ptr<physics::Object>>> objectMap, float dt) {
+        for (auto &pair: broadphasePairs) {
+            auto sphereA = boundingBoxToSphere(pair.firstMesh->boundingbox);
+            auto sphereB = boundingBoxToSphere(pair.secondMesh->boundingbox);
             auto colPacketA = std::make_shared<CollisionPacket>();
             auto colPacketB = std::make_shared<CollisionPacket>();
-            colPacketA->sphere = sphere;
-            colPacketB->sphere = sphere2;
+            colPacketA->sphere = sphereA;
+            colPacketB->sphere = sphereB;
             prepareCollision(colPacketA, objectMap->at(pair.modelIdA));
             prepareCollision(colPacketB, objectMap->at(pair.modelIdB));
-            checkCollisions(colPacketA, sphere2);
-            checkCollisions(colPacketB, sphere);
+            checkCollisions(colPacketA, sphereB);
+            checkCollisions(colPacketB, sphereA);
+
             if (colPacketA->foundCollision || colPacketB->foundCollision) {
-                glm::vec3 normal = glm::normalize(colPacketB->obj->position - colPacketA->obj->position);
-                float relativeVelocity = glm::dot(colPacketB->obj->velocity - colPacketA->obj->velocity, normal);
+                glm::vec3 collisionNormal = glm::normalize(colPacketB->obj->position - colPacketA->obj->position);
+                float relativeVelocity = glm::dot(colPacketB->obj->velocity - colPacketA->obj->velocity,
+                                                  collisionNormal);
                 if (relativeVelocity < 0)
                     continue;
 
                 float e = 1.0;
                 float j = -(1 + e) * relativeVelocity / (1 / colPacketA->obj->mass + 1 / colPacketB->obj->mass);
-                glm::vec3 impulse = j * normal;
+                glm::vec3 impulse = j * collisionNormal;
 
-                colPacketA->obj->velocity += impulse / colPacketA->obj->mass * dt;
-                colPacketB->obj->velocity -= impulse / colPacketB->obj->mass * dt;
+                colPacketA->obj->velocity -= impulse / colPacketA->obj->mass;
+                colPacketB->obj->velocity += impulse / colPacketB->obj->mass;
 
-                float penetrationDepth = colPacketA->sphere.radius + colPacketB->sphere.radius - glm::length(colPacketA->obj->position - colPacketB->obj->position);
-                glm::vec3 correction = penetrationDepth * 2.0f * normal;
-                colPacketA->obj->position -= correction;
-                colPacketB->obj->position += correction;
+                float penetrationDepth = (sphereA.radius + sphereB.radius) -
+                                         glm::distance(colPacketA->obj->position, colPacketB->obj->position);
+                glm::vec3 correction =
+                        (penetrationDepth * collisionNormal) * 0.25f;
+                colPacketA->obj->position += correction;
+                colPacketB->obj->position -= correction;
+
+                colPacketA->obj->model->boundingbox.updateDifference(colPacketA->obj->position);
+                colPacketB->obj->model->boundingbox.updateDifference(colPacketB->obj->position);
             }
         }
     }

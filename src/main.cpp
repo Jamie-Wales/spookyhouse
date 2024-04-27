@@ -7,6 +7,7 @@
 #include "Model.h"
 #include "Physics.h"
 #include "Renderer.h"
+#include "Terrain.h"
 #include "lib/miniaudo.h"
 #include "utils/Spline.h"
 #include <__errc>
@@ -80,7 +81,7 @@ void bindLightCube(unsigned int& VAO, unsigned int& VBO)
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 
-void processInput(GLFWwindow* window);
+void processInput(GLFWwindow* window, Terrain& terrain);
 auto height = 2000;
 Camera camera = {};
 auto width = 3000;
@@ -122,30 +123,45 @@ int main()
 
     Shader shader("../src/modelLoading.vert.glsl", "../src/modelLoading.frag.glsl");
     Shader treeShader("../src/tree.vert.glsl", "../src/tree.frag.glsl");
+    Shader terShader("../src/terrain.vert.glsl", "../src/terrain.frag.glsl");
     auto leftDoor = std::make_shared<Model>(Model { "../assets/house/leftDoor/leftDoor.obj", glm::mat4(1.0f), glm::vec3(0), 1 });
     auto rightDoor = std::make_shared<Model>(Model { "../assets/house/rightDoor/rightDoor.obj", glm::mat4(1.0f), glm::vec3(0), 2 });
     auto cartDoor = std::make_shared<Model>(Model { "../assets/track/cartDoor.obj", glm::mat4(1.0f), glm::vec3(0.0), 3 });
     auto pipe = std::make_shared<Model>(Model { "../assets/track/doorLock.obj", glm::mat4(1.0f), glm::vec3(0.0, 0.0, 1.0), 4 });
-    auto minecart = std::make_shared<Model>(Model { "../assets/track/mineCart.obj", glm::mat4(1.0f), glm::vec3(0.0), 5 });
+    auto minecart = std::make_shared<Model>(Model { "../assets/track/mineCart.obj", glm::mat4(1.0f), glm::vec3(0.0, 0.0, 0.0), 5 });
     auto wheelFront = std::make_shared<Model>("../assets/track/wheelBack.obj", glm::mat4(1.0f), glm::vec3(0.0), 6);
     auto wheelBack = std::make_shared<Model>("../assets/track/wheelFront.obj", glm::mat4(1.0f), glm::vec3(0.0), 7);
     auto track = std::make_shared<Model>("../assets/track/spokytrackobj.obj", glm::mat4(1.0f), glm::vec3(0.0), 8);
     auto tree = std::make_shared<Model>("../assets/tree/spookytree.obj", glm::mat4(1.0f), glm::vec3(0.0), 9);
+    auto house = std::make_shared<Model>("../assets/house/hh.obj", glm::mat4(1.0f), glm::vec3(0.0), 10);
+    auto outhouse = std::make_shared<Model>("../assets/Monster/outhouse.obj", glm::mat4(1.0f), glm::vec3(0.0), 11);
+    auto monster = std::make_shared<Model>("../assets/Monster/monster.obj", glm::mat4(1.0f), glm::vec3(0.0), 11);
+    auto teeth = std::make_shared<Model>("../assets/Monster/teeth.obj", glm::mat4(1.0f), glm::vec3(0.0), 11);
+    auto outhouseDoor = std::make_shared<Model>("../assets/Monster/door.obj", glm::mat4(1.0f), glm::vec3(0.0), 11);
+    auto eyes = std::make_shared<Model>("../assets/Monster/eyes.obj", glm::mat4(1.0f), glm::vec3(0.0), 12);
+    // auto hallway = std::make_shared<Model>("../assets/hallway/hallway.obj", glm::mat4(1.0f), glm::vec3(0.0), 13);
     Renderer renderer { projection, camera };
     float dim = 0.25;
     std::vector<glm::mat4> translations(amount);
+
+    //  auto newPos = glm::translate(model->translation, glm::vec3(1.7461f, 0.1217f, 0.044948f));
+
+    outhouseDoor->setOrigin(glm::vec3(1.197, -0.00344, 0.4178));
+
     initInstancedObject(amount, tree, translations);
-    renderer.enqueue(shader, { leftDoor, rightDoor, cartDoor, pipe, minecart, wheelFront, wheelBack, track });
+
+    renderer.enqueue(shader, { outhouseDoor, outhouse, monster, teeth, eyes, track, house, leftDoor, rightDoor, minecart});
     std::vector<std::shared_ptr<Model>> splineModels = { cartDoor, wheelFront, wheelBack };
     auto world = physics::PhysicsWorld();
-    world.addModel(pipe);
-    world.addModel(minecart);
-    Cube cube(pipe->boundingbox);
-    std::shared_ptr<AnimationCycle> doorAnimation = initDoorAnimation(cartDoor, pipe, pSpline, minecart, splineModels);
+    Terrain terrain { 1 };
+
+    camera.position.y = -terrain.getHeight(camera.position.x, camera.position.z);
+            Cube cube(pipe->boundingbox);
+    auto doorAnimation = initDoorAnimation(cartDoor, pipe, pSpline, minecart, splineModels);
     auto hdAnimation = houseDoorAnimation(rightDoor);
-
+    auto outhouseanimation = initOuthouseDoorAnimation(outhouseDoor);
     auto lastFrameTime = static_cast<float>(glfwGetTime());
-
+    world.addModel(minecart);
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.4f, 0.1f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -154,8 +170,8 @@ int main()
         lastFrameTime = currentTime;
         accumulator += frameTime;
         while (accumulator >= deltaTime) {
-            world.tick(deltaTime);
             accumulator -= deltaTime;
+            world.tick(deltaTime, terrain);
         }
         renderer.renderAll();
         doorAnimation->update(deltaTime);
@@ -164,24 +180,36 @@ int main()
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
             doorAnimation->nextState();
         }
-        if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
-            world.applyForce(4, glm::vec3(0.0, 0.0, 1.0));
-        }
         if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-            world.applyForce(4, glm::vec3(0.0, 0.0, -1.0));
+            outhouseDoor->origin.x -= 0.001;
         }
 
+        if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
+            outhouseDoor->origin.y -= 0.001;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
+            outhouseDoor->origin.z -= 0.001;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
+            std::cout << outhouseDoor->origin.x << " " << outhouseDoor->origin.y << " " << outhouseDoor->origin.z << std::endl;
+        }
+
+        outhouseanimation->update(deltaTime);
         GLenum err;
         while ((err = glGetError()) != GL_NO_ERROR) {
             std::cerr << "OpenGL error: " << err << std::endl;
         }
 
+        terrain.render(projection, camera.getCameraView());
         treeShader.use();
         renderer.lightingShader(treeShader);
         treeShader.setInt("texture_diffuse1", 0);
         treeShader.setFloat("shininess", 3);
         treeShader.setMat4("projection", projection);
         treeShader.setMat4("view", camera.getCameraView());
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, tree->textures_loaded[0].id);
         for (unsigned int i = 0; i < tree->meshes.size(); i++) {
@@ -189,8 +217,7 @@ int main()
             glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(tree->meshes[i].indices.size()), GL_UNSIGNED_INT, 0, amount);
             glBindVertexArray(0);
         }
-
-        processInput(window);
+        processInput(window, terrain);
         glfwPollEvents();
         glfwSwapBuffers(window);
     }
@@ -199,27 +226,27 @@ int main()
     return 0;
 }
 
-void processInput(GLFWwindow* window)
+void processInput(GLFWwindow* window, Terrain& terrain)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
     else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.processKeyboard(Camera::Movement::FORWARD, deltaTime, true);
+        camera.processKeyboard(Camera::Movement::FORWARD, deltaTime, true, terrain);
     else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.processKeyboard(Camera::Movement::BACKWARD, deltaTime, true);
+        camera.processKeyboard(Camera::Movement::BACKWARD, deltaTime, true, terrain);
     else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.processKeyboard(Camera::Movement::LEFT, deltaTime, true);
+        camera.processKeyboard(Camera::Movement::LEFT, deltaTime, true, terrain);
     else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.processKeyboard(Camera::Movement::RIGHT, deltaTime, true);
+        camera.processKeyboard(Camera::Movement::RIGHT, deltaTime, true, terrain);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE)
-        camera.processKeyboard(Camera::Movement::FORWARD, deltaTime, false);
+        camera.processKeyboard(Camera::Movement::FORWARD, deltaTime, false, terrain);
     else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE)
-        camera.processKeyboard(Camera::Movement::BACKWARD, deltaTime, false);
+        camera.processKeyboard(Camera::Movement::BACKWARD, deltaTime, false, terrain);
     else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE)
-        camera.processKeyboard(Camera::Movement::LEFT, deltaTime, false);
+        camera.processKeyboard(Camera::Movement::LEFT, deltaTime, false, terrain);
     else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE)
-        camera.processKeyboard(Camera::Movement::RIGHT, deltaTime, false);
+        camera.processKeyboard(Camera::Movement::RIGHT, deltaTime, false, terrain);
 }
 
 // ---------------------------------------------------------------------------------------------

@@ -83,8 +83,8 @@ public:
 
             modToId[id] = objectModel;
             BoundingBox box = mesh.boundingbox;
-            if (box.position != objectModel->position)
-                box.updatePosition(objectModel->position - box.position);
+            if (box.position != objectModel->boundingbox.position)
+                box.updateDifference(objectModel->boundingbox.position);
             std::shared_ptr<sweepObject> so = std::make_shared<sweepObject>(id, std::make_shared<Mesh>(mesh));
             sweepMap[so->id] = so;
             modelToSweep[modid].push_back(so);
@@ -222,7 +222,7 @@ public:
         for (auto& sweep : vec) {
             BoundingBox& bb = sweep->mesh->boundingbox;
             if (bb.position != model->position)
-                bb.updatePosition(model->position - bb.position);
+                bb.updateDifference(model->position);
             sweepEndpoints(xEndPoints, 'x', sweep->id, bb);
             sweepEndpoints(yEndPoints, 'y', sweep->id, bb);
             sweepEndpoints(zEndPoints, 'z', sweep->id, bb);

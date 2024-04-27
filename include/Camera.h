@@ -9,6 +9,7 @@
 #include <glm/geometric.hpp>
 #include <glm/trigonometric.hpp>
 #include <glm/vec3.hpp>
+#include "Terrain.h"
 
 class Camera {
 public:
@@ -19,13 +20,16 @@ public:
         RIGHT
     };
 
+
+
+
     glm::mat4 getCameraView();
 
     void processMouseScroll(float offset);
 
     void processMouseMovement(float x, float y);
 
-    void processKeyboard(Camera::Movement movement, float deltaTime, bool down);
+    void processKeyboard(Camera::Movement movement, float deltaTime, bool down, Terrain& terrain);
 
     void update();
 
@@ -39,6 +43,7 @@ public:
             return current - glm::normalize(difference) * dt;
         return target;
     }
+
     float Approach(float target, float current, float delta)
     {
         float difference = target - current;
@@ -71,10 +76,11 @@ public:
     void decrease(float deltaTime);
 
     void update(float deltaTime);
+    void checkXpos(Terrain& terrain);
 
     void updateCameraVector();
     struct options options { };
-    void updatePosition(float deltaTime);
+    void updatePosition(float deltaTime, Terrain& terrain);
 
     Camera()
     {

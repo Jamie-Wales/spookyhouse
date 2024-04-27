@@ -1,4 +1,0 @@
-"/Users/jamie/Applications/CLion Nova.app/Contents/bin/cmake/mac/aarch64/bin/cmake" -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" -S /Users/jamie/Dev/spooky -B /Users/jamie/Dev/spooky/cmake-build-debug
--- Configuring done (0.1s)
--- Generating done (0.0s)
--- Build files have been written to: /Users/jamie/Dev/spooky/cmake-build-debug
