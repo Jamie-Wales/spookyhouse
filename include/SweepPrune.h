@@ -287,7 +287,6 @@ public:
         auto& vec = modelToSweep[camera->id];
 
         for (auto& sweep : vec) {
-            sweep->camera->alignWithCamera();
             BoundingBox& bb = sweep->camera->boundingBox;
             sweepEndpoints(xEndPoints, 'x', sweep->id, bb);
             sweepEndpoints(yEndPoints, 'y', sweep->id, bb);

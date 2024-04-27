@@ -13,7 +13,7 @@ namespace physics {
 struct Object {
 public:
     Object() = default;
-    Object(glm::vec3 position, glm::vec3 velocity, glm::vec3 force, float mass, std::shared_ptr<Model> model, std::shared_ptr<Camera> camera, bool isDynamic, bool isTrigger, bool isCamera)
+    Object(glm::vec3 position, glm::vec3 velocity, glm::vec3 force, float mass, std::shared_ptr<Model> model, std::shared_ptr<Camera> camera, bool isDynamic, bool isTrigger, bool isCamera, bool isStatic)
         : position(position)
         , velocity(velocity)
         , force(force)
@@ -23,6 +23,8 @@ public:
         , isDynamic(isDynamic)
         , isTrigger(isTrigger)
         , isCamera(isCamera)
+        , isStatic(isStatic)
+
     {
     }
 
@@ -37,6 +39,7 @@ public:
         this->isDynamic = object->isDynamic;
         this->isTrigger = object->isTrigger;
         this->isCamera = object->isCamera;
+        this->isStatic = object->isStatic;
     }
     Object(Object& object)
     {
@@ -49,6 +52,7 @@ public:
         this->isDynamic = object.isDynamic;
         this->isTrigger = object.isTrigger;
         this->isCamera = object.isCamera;
+        this->isStatic = object.isStatic;
     }
 
     glm::vec3 position, velocity, force;
@@ -58,7 +62,8 @@ public:
     bool isDynamic;
     bool isTrigger;
     bool isCamera;
-    float gravity = 1.0;
+    float gravity = 0.0;
+    bool isStatic;
 };
 
 }

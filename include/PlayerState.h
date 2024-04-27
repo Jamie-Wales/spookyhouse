@@ -51,8 +51,9 @@ public:
             right->position.z = camera->position.z + camera->front.z * 2.0f + camera->right.z * 1.0f;
             left->position.y = camera->position.y - 0.8f;
             right->position.y = camera->position.y - 0.8f;
-            left->yaw = -camera->options.yaw;
-            right->yaw = -camera->options.yaw;
+            left->yaw = glm::mix(-camera->options.yaw, left->yaw, 0.5);
+            right->yaw = glm::mix(-camera->options.yaw, right->yaw, 0.5);
+
         }
         if (state == PlayerState::State::RUNNING) {
 
@@ -62,8 +63,8 @@ public:
             right->position.z = camera->position.z + camera->front.z * 2.0f + camera->right.z * 1.0f;
             left->position.y = camera->position.y - 0.8f;
             right->position.y = camera->position.y - 0.8f;
-            left->yaw = -camera->options.yaw;
-            right->yaw = -camera->options.yaw;
+            left->yaw = glm::mix(-camera->options.yaw, left->yaw, 0.5);
+            right->yaw = glm::mix(-camera->options.yaw, right->yaw, 0.5);
             armLeft->update(delta);
             armRight->update(delta);
         }
