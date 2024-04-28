@@ -8,6 +8,10 @@ struct Vertex {
     glm::vec2 tex;
     glm::vec3 normal;
 
+    glm::vec3 getNormal()
+    {
+        return normal;
+    }
     float safeGetHeight(Terrain& terrain, int x, int z)
     {
         x = std::max(0, std::min(x, terrain.terrainSize - 1));
@@ -36,4 +40,4 @@ struct Vertex {
     }
 };
 
-#endif // INCLUDE_UTILS_VERTEX_H_
+#endif // INCLUDE_UTILS_VERTEX_

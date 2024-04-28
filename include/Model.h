@@ -23,9 +23,12 @@ public:
     BoundingBox boundingbox;
     glm::vec3 position;
     glm::vec3 origin = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::mat4 rotation;
+    float pitch = 0;
+    float yaw = 0;
 
     int id;
-    float scale = 20.0f;
+    float scale = 1.0f;
 
     Model(string const& path, glm::mat4 translation, glm::vec3 position, int id, bool gamma = false)
         : gammaCorrection(gamma)

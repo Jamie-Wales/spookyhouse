@@ -13,8 +13,42 @@
 #include <__errc>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp> // Include for quaternion operations
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+
 #include <memory>
 
+glm::quat rotationFromVectors(glm::vec3 start, glm::vec3 dest)
+{
+    start = glm::normalize(start);
+    dest = glm::normalize(dest);
+
+    float cosTheta = glm::dot(start, dest);
+    glm::vec3 rotationAxis;
+
+    if (cosTheta < -1 + 0.001f) {
+        // special case when vectors in opposite directions:
+        // there is no "ideal" rotation axis
+        // So guess one; any will do as long as it's perpendicular to start
+        rotationAxis = glm::cross(glm::vec3(0.0f, 0.0f, 1.0f), start);
+        if (glm::length2(rotationAxis) < 0.01) // bad luck, they were parallel, try again!
+            rotationAxis = glm::cross(glm::vec3(1.0f, 0.0f, 0.0f), start);
+
+        rotationAxis = glm::normalize(rotationAxis);
+        return glm::angleAxis(glm::radians(180.0f), rotationAxis);
+    }
+
+    rotationAxis = glm::cross(start, dest);
+    float s = sqrt((1 + cosTheta) * 2);
+    float invs = 1 / s;
+
+    return glm::quat(
+        s * 1.0f,
+        rotationAxis.x * invs,
+        rotationAxis.y * invs,
+        rotationAxis.z * invs);
+}
 glm::vec3 lightPos(0.0f, -1.0f, -0.3f);
 float rotation = 0.0f;
 bool opening;
@@ -95,6 +129,8 @@ bool firstMouse = true;
 float lastX = 0;
 float lastY = 0;
 double accumulator = 0.0;
+bool pressed = false;
+bool insideCart = false;
 int main()
 {
 
@@ -123,14 +159,10 @@ int main()
 
     Shader shader("../src/modelLoading.vert.glsl", "../src/modelLoading.frag.glsl");
     Shader treeShader("../src/tree.vert.glsl", "../src/tree.frag.glsl");
-    auto leftDoor = std::make_shared<Model>(Model { "../assets/house/leftDoor/leftDoor.obj", glm::mat4(1.0f), glm::vec3(0), 1 });
-    auto rightDoor = std::make_shared<Model>(Model { "../assets/house/rightDoor/rightDoor.obj", glm::mat4(1.0f), glm::vec3(0), 2 });
-    auto cartDoor = std::make_shared<Model>(Model { "../assets/track/cartDoor.obj", glm::mat4(1.0f), glm::vec3(0.0), 3 });
-    auto pipe = std::make_shared<Model>(Model { "../assets/track/doorLock.obj", glm::mat4(1.0f), glm::vec3(0.0, 0.0, 1.0), 4 });
-    auto minecart = std::make_shared<Model>(Model { "../assets/track/mineCart.obj", glm::mat4(1.0f), glm::vec3(0.0, 0.0, 0.0), 5 });
-    auto wheelFront = std::make_shared<Model>("../assets/track/wheelBack.obj", glm::mat4(1.0f), glm::vec3(0.0), 6);
-    auto wheelBack = std::make_shared<Model>("../assets/track/wheelFront.obj", glm::mat4(1.0f), glm::vec3(0.0), 7);
-    auto track = std::make_shared<Model>("../assets/track/spokytrackobj.obj", glm::mat4(1.0f), glm::vec3(0.0), 8);
+    auto pipe = std::make_shared<Model>("../assets/track/doorLock.obj", glm::mat4(1.0f), glm::vec3(1.0, 0.0, 0.0), 4);
+    auto minecart = std::make_shared<Model>("../assets/track/mineCart.obj", glm::mat4(1.0f), glm::vec3(0.0), 19);
+    auto cart = std::make_shared<Model>("../assets/track/cart.obj", glm::mat4(1.0f), glm::vec3(-18.212, 5.8958, -0.55272), 7);
+    auto track = std::make_shared<Model>("../assets/track/track.obj", glm::mat4(1.0f), glm::vec3(0.0), 8);
     auto tree = std::make_shared<Model>("../assets/tree/spookytree.obj", glm::mat4(1.0f), glm::vec3(0.0), 9);
     auto house = std::make_shared<Model>("../assets/house/hh.obj", glm::mat4(1.0f), glm::vec3(0.0), 10);
     auto monster = std::make_shared<Model>("../assets/monster/monster.obj", glm::mat4(1.0f), glm::vec3(1.1470, 0.0, 0.8994), 11);
@@ -138,7 +170,6 @@ int main()
     auto outhouseDoor = std::make_shared<Model>("../assets/Monster/door.obj", glm::mat4(1.0f), glm::vec3(0.0), 11);
     auto eyes = std::make_shared<Model>("../assets/Monster/eyes.obj", glm::mat4(1.0f), glm::vec3(0.0), 12);
     // auto hallway = std::make_shared<Model>("../assets/hallway/hallway.obj", glm::mat4(1.0f), glm::vec3(0.0), 13);
-    Renderer renderer { projection, camera };
     float dim = 0.25;
     std::vector<glm::mat4> translations(amount);
 
@@ -148,25 +179,24 @@ int main()
 
     initInstancedObject(amount, tree, translations);
 
-    renderer.enqueue(shader, { outhouseDoor, monster, teeth, eyes, track, house, leftDoor, rightDoor, minecart });
-    std::vector<std::shared_ptr<Model>> splineModels = { cartDoor, wheelFront, wheelBack };
     auto world = physics::PhysicsWorld();
     Terrain terrain { 1, { "../assets/Water texture.png", "../assets/rock 01.jpg", "../assets/rock02 texture.jpg", "../assets/tilable img 0044 verydark.png" }, 5.0f };
     monster->position = glm::vec3(201.1470, 0, 300.8994);
-    camera.position.x = 230;
-    camera.position.z = 330;
-    camera.position.y = -terrain.getHeight(camera.position.x, camera.position.z);
+    camera.position.x = 250;
+    camera.position.z = 350;
+    camera.position.y = -terrain.GetHeightInterpolated(camera.position.x, camera.position.z);
     camera.position.y += 20.0f;
-    monster->position.y = -terrain.getHeight(monster->position.x, monster->position.z);
-    monster->position.y += 0.5;
-    house->position = glm::vec3(230, -terrain.getHeight(230, 330), 330.0);
-    house->position.y += 0.5;
-    Cube cube(pipe->boundingbox);
-    auto doorAnimation = initDoorAnimation(cartDoor, pipe, pSpline, minecart, splineModels);
-    auto hdAnimation = houseDoorAnimation(rightDoor);
+
+    glm::vec3 normal = terrain.normalMap(240, 330);
+    house->setOrigin(glm::vec3(1.682, -0.027, -0.51));
+    float yaw = -glm::degrees(glm::atan(normal.x, glm::sqrt(normal.y * normal.y + normal.z * normal.z))); // Rotate in xy-plane
+    house->position = glm::vec3(240, -terrain.getHeight(240, 330), 330.0);
+
+    Renderer renderer { projection, camera, terrain };
+    renderer.enqueue(shader, { outhouseDoor, monster, teeth, eyes, track, house, cart, pipe, minecart });
+
     auto outhouseanimation = initOuthouseDoorAnimation(outhouseDoor);
     auto lastFrameTime = static_cast<float>(glfwGetTime());
-    world.addModel(minecart);
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.4f, 0.1f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -178,15 +208,16 @@ int main()
             accumulator -= deltaTime;
             world.tick(deltaTime, terrain);
         }
-        renderer.renderAll();
-        doorAnimation->update(deltaTime);
-        hdAnimation->update(deltaTime);
-
-        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-            doorAnimation->nextState();
-        }
         if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-            outhouseDoor->origin.x -= 0.001;
+            world.applyForce(4, glm::vec3(0.0f, 0.0f, -0.1f));
+        }
+        renderer.renderAll();
+
+        if (insideCart) {
+            camera.position = cart->position;
+            camera.position.y += 10.0f;
+            camera.position.z -= 2.0f;
+            camera.update();
         }
 
         outhouseanimation->update(deltaTime);
@@ -221,8 +252,9 @@ int main()
             glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(tree->meshes[i].indices.size()), GL_UNSIGNED_INT, 0, amount);
             glBindVertexArray(0);
         }
-        processInput(window, terrain);
+
         glfwPollEvents();
+        processInput(window, terrain);
         glfwSwapBuffers(window);
     }
 
@@ -232,6 +264,16 @@ int main()
 
 void processInput(GLFWwindow* window, Terrain& terrain)
 {
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        pressed = true;
+    else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE && pressed) {
+        pressed = false;
+        if (insideCart) {
+            camera.position = glm::vec3(250, 20, 350);
+            camera.update();
+        }
+        insideCart = !insideCart;
+    }
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
     else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)

@@ -29,6 +29,7 @@ void Terrain::faultFormationTerrain(int iterations, float minHeight, float maxHe
 
         float iterationRatio = ((float)i / (float)iterations);
         float height = maxHeight - iterationRatio * deltaHeight;
+        int center = terrainSize / 2;
 
         TerrainPoint p1;
         TerrainPoint p2;
@@ -88,7 +89,8 @@ Terrain::Terrain(float scale, std::initializer_list<const std::string> textureFi
     glEnableVertexAttribArray(normal);
     glVertexAttribPointer(normal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(numfloats * sizeof(float)));
     numfloats += 3;
-    CreateFaultFormation(500, 100, 1, 100);
+    CreateFaultFormation(500, 200, 1, 80);
+    normalMap = Array2D<glm::vec3>(terrainSize, terrainSize, glm::vec3(0.0f));
     populateBuffer();
 
     for (auto& textureFile : textureFiles) {
@@ -123,7 +125,7 @@ float Terrain::getHeight(int x, int z) const
 
 float Terrain::getWorldHeight()
 {
-    return this->terrainSize / this->scale;
+    return this->terrainSize;
 }
 
 float Terrain::FIRFilterSinglePoint(int x, int z, float preval, float filter)
@@ -178,6 +180,7 @@ void Terrain::populateBuffer()
         for (int z = 0; z < height; z++) {
             Vertex vertex;
             vertex.init(*this, x, z);
+            normalMap(x, z) = vertex.getNormal();
             vertices[index] = vertex;
             index++;
         }

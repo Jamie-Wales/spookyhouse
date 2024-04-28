@@ -30,6 +30,7 @@ public:
     float minHeight;
     float maxHeight;
     float textureScale;
+    Array2D<glm::vec3> normalMap;
     float FIRFilterSinglePoint(int x, int z, float preval, float filter);
     std::vector<std::shared_ptr<Texture>> textures = {};
     void ApplyFirFilter(float filter);
@@ -44,6 +45,7 @@ public:
     void populateBuffer();
     void CreateFaultFormation(int terrainSize, int iterations, float minHeight, float maxHeight);
     void faultFormationTerrain(int iterations, float minHeight, float maxHeight);
+    void flattenArea(int x, int z, int size, float height);
 
     float GetHeightInterpolated(float x, float z) const
     {

@@ -3,6 +3,7 @@
 
 #include "Camera.h"
 #include "Model.h"
+#include <glm/ext/matrix_transform.hpp>
 #include <initializer_list>
 #include <memory>
 #include <unordered_map>
@@ -14,6 +15,7 @@ private:
     std::unordered_map<unsigned int, std::shared_ptr<Shader>> shaders;
     glm::mat4 projection;
     glm::mat4 cameraMatrix;
+    Terrain& terrain;
     std::vector<glm::vec3> pointLightPositions = {
         glm::vec3(1.8392f, 0.16, 0.369f),
         glm::vec3(1.5085f, 0.185, 0.37f),
@@ -21,9 +23,10 @@ private:
     Camera& cam;
 
 public:
-    Renderer(glm::mat4 projection, Camera& cam)
+    Renderer(glm::mat4 projection, Camera& cam, Terrain& terrain)
         : projection(projection)
-        , cam(cam) {};
+        , cam(cam)
+        , terrain(terrain) {};
     void enqueue(const Shader& shader, std::initializer_list<std::shared_ptr<Model>> model)
     {
         for (auto& m : model) {
@@ -72,8 +75,9 @@ public:
             shader->setMat4("view", cam.getCameraView());
 
             for (auto modelPtr : value) {
-                glm::mat4 model = glm::translate(modelPtr->translation, modelPtr->position);
-                model = glm::scale(model, glm::vec3(modelPtr->scale));
+                glm::mat4 model = glm::mat4(1.0f);
+                model = glm::rotate(model, glm::radians(modelPtr->yaw), glm::vec3(1, 0, 0));
+                model = glm::translate(model, modelPtr->position);
                 shader->setMat4("model", model);
                 modelPtr->Draw(*shader);
             }

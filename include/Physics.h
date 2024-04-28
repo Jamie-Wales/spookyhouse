@@ -65,8 +65,8 @@ public:
             object->velocity += acceleration * dt;
             object->velocity *= DAMPENING;
             object->position += object->velocity * dt;
-            if (object->position.y < -terrain.getHeight(object->position.x, object->position.z)) {
-                object->position.y = -terrain.getHeight(object->position.x, object->position.z);
+            if (object->position.y < 0) {
+                object->position.y = 0;
                 object->velocity.y = 0;
             }
             object->model->boundingbox.updateDifference(object->position);
