@@ -49,7 +49,7 @@ void Terrain::faultFormationTerrain(int iterations, float minHeight, float maxHe
         }
     }
 
-    ApplyFirFilter(0.8);
+    ApplyFirFilter(0.9);
 }
 
 void Terrain::CreateFaultFormation(int terrainSize, int iterations, float minHeight, float maxHeight)
@@ -89,7 +89,7 @@ Terrain::Terrain(float scale, std::initializer_list<const std::string> textureFi
     glEnableVertexAttribArray(normal);
     glVertexAttribPointer(normal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(numfloats * sizeof(float)));
     numfloats += 3;
-    CreateFaultFormation(500, 200, 1, 80);
+    CreateFaultFormation(1000, 300, 1, 60);
     normalMap = Array2D<glm::vec3>(terrainSize, terrainSize, glm::vec3(0.0f));
     populateBuffer();
 

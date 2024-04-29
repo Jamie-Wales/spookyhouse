@@ -55,6 +55,8 @@ public:
         for (unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].draw(shader);
     }
+    glm::vec3& getPosition() { return position; }
+    void setPosition(glm::vec3 position) { this->position = position; }
 
 private:
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.

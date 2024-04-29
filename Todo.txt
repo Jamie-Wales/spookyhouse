@@ -1,20 +1,20 @@
 Spooky house whats left to do
+-> move along track
+-> finish swapping camera
+-> finish terrain collison
+-> sitting in center of cart, only attach when inside bounding box;
+
+
 -> finish the scene itself
     point lights 
         moving light <- elumniating a ghost model
     gravestones 
     cemetary outside would be good
--> finish swapping camera
 -> shadow mapping
--> finish terrain generation
--> terrain collision -> get where you are and set you to the height of the terrain from the terrain map
--> if you press button when the cart is open camera attaches to the cart
     A few different rooms inside the house itself 
     ending sequence 
         flash of lighting
         Stop drawing
         draw hell place 
 -> Sphere plane collision
--> getting the terrain finished 
-
 -> do some ray shooting gun thing (This is last prio) 
