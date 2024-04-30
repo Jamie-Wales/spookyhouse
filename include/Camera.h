@@ -4,12 +4,12 @@
 
 #pragma once
 
+#include "Terrain.h"
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/fwd.hpp>
 #include <glm/geometric.hpp>
 #include <glm/trigonometric.hpp>
 #include <glm/vec3.hpp>
-#include "Terrain.h"
 
 class Camera {
 public:
@@ -19,9 +19,6 @@ public:
         LEFT,
         RIGHT
     };
-
-
-
 
     glm::mat4 getCameraView();
 
@@ -86,7 +83,7 @@ public:
     {
         options.maxSpeed = 15.0f;
         firstPerson = false;
-        position = glm::vec3 { 0.0f, 1.0f, 3.0f };
+        position = glm::vec3 { 0.0f, -45.0f, 3.0f };
         front = glm::vec3 { 0.0f, 0.0f, -1.0f };
         up = glm::vec3 { 0.0f, 1.0f, 0.0f };
         worldUp = up;
@@ -103,7 +100,7 @@ public:
     Camera(bool firstPerson)
     {
         this->firstPerson = firstPerson;
-        position = glm::vec3 { 0.0f, 0.05f, 3.0f };
+        position = glm::vec3 { 0.0f, -45.05f, 3.0f };
         front = glm::vec3 { 0.0f, 0.0f, -1.0f };
         up = glm::vec3 { 0.0f, 1.0f, 0.0f };
         worldUp = up;

@@ -65,6 +65,27 @@ public:
         lightingShader.setFloat("pointLights[1].quadratic", 0.032f);
     }
 
+    std::vector<std::shared_ptr<Model>> getAllModels()
+    {
+        std::vector<std::shared_ptr<Model>> allModels;
+        for (auto& [key, value] : renderQueue) {
+            for (auto modelPtr : value) {
+                allModels.push_back(modelPtr);
+            }
+        }
+        return allModels;
+    }
+
+    void printModelPositions()
+    {
+        for (auto& [key, value] : renderQueue) {
+            for (auto modelPtr : value) {
+                std::cout << "SHADER -> " << key << " POSITION ";
+                std::cout << "ID -> " << modelPtr->id << std::endl;
+                std::cout << modelPtr->position.x << " " << modelPtr->position.y << " " << modelPtr->position.z << std::endl;
+            }
+        }
+    }
     void renderAll()
     {
         for (auto& [key, value] : renderQueue) {
@@ -76,8 +97,10 @@ public:
 
             for (auto modelPtr : value) {
                 glm::mat4 model = glm::mat4(1.0f);
-                model = glm::rotate(model, glm::radians(modelPtr->yaw), glm::vec3(1, 0, 0));
                 model = glm::translate(model, modelPtr->position);
+                model = glm::rotate(model, glm::radians(modelPtr->yaw), glm::vec3(0, 1, 0));
+                model = glm::rotate(model, glm::radians(modelPtr->pitch), glm::vec3(1, 0, 0));
+                model = glm::rotate(model, glm::radians(modelPtr->roll), glm::vec3(0, 0, 1));
                 shader->setMat4("model", model);
                 modelPtr->Draw(*shader);
             }

@@ -153,7 +153,7 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 
 void processInput(GLFWwindow* window, Terrain& terrain);
 auto height = 2000;
-Camera camera = {};
+Camera camera = { true };
 auto width = 3000;
 int amount = 100000;
 
@@ -178,14 +178,13 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // Create window with graphics context
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(3000, 2000, "Spooky House", NULL, NULL);
     if (window == NULL)
         return 1;
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(1); // Enable vsync
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSwapInterval(1);
     glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (glewInit() != GLEW_OK) {
@@ -193,7 +192,6 @@ int main()
         return 1;
     }
 
-    // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -207,87 +205,103 @@ int main()
 
     Shader shader("../src/modelLoading.vert.glsl", "../src/modelLoading.frag.glsl");
     Shader treeShader("../src/tree.vert.glsl", "../src/tree.frag.glsl");
-    auto pipe = std::make_shared<Model>("../assets/track/doorLock.obj", glm::mat4(1.0f), glm::vec3(1.0, 0.0, 0.0), 4);
-    auto minecart = std::make_shared<Model>("../assets/track/mineCart.obj", glm::mat4(1.0f), glm::vec3(0.0), 19);
-    auto cart = std::make_shared<Model>("../assets/track/cart.obj", glm::mat4(1.0f), glm::vec3(91.019 + TERRAINX, 22.73, 4.3865 + TERRAINZ), 7);
-    auto track = std::make_shared<Model>("../assets/track/track.obj", glm::mat4(1.0f), glm::vec3(TERRAINX + 3, 0.0, TERRAINZ), 8);
-    auto tree = std::make_shared<Model>("../assets/tree/spookytree.obj", glm::mat4(1.0f), glm::vec3(0.0), 9);
-    auto house = std::make_shared<Model>("../assets/house/hh.obj", glm::mat4(1.0f), glm::vec3(-8.9246 + TERRAINX, 0, 30 + TERRAINZ), 10);
-    auto monster = std::make_shared<Model>("../assets/monster/monster.obj", glm::mat4(1.0f), glm::vec3(1.1470, 0.0, 0.8994), 11);
-    auto teeth = std::make_shared<Model>("../assets/Monster/teeth.obj", glm::mat4(1.0f), glm::vec3(0.0), 11);
-    auto outhouseDoor = std::make_shared<Model>("../assets/Monster/door.obj", glm::mat4(1.0f), glm::vec3(0.0), 11);
-    auto eyes = std::make_shared<Model>("../assets/Monster/eyes.obj", glm::mat4(1.0f), glm::vec3(0.0), 12);
-    auto hallway = std::make_shared<Model>("../assets/hallway/hallway.obj", glm::mat4(1.0f), glm::vec3(0.0), 13);
-    float dim = 0.25;
-    std::vector<glm::mat4> translations(amount);
-    //  auto newPos = glm::translate(model->translation, glm::vec3(1.7461f, 0.1217f, 0.044948f));
+    auto pipe = std::make_shared<Model>("../assets/track/doorLock.obj", glm::mat4(1.0f), glm::vec3(0.0, 0.0, 0.0), 4, 0.0, 0.0, 0.0);
+    auto minecart = std::make_shared<Model>("../assets/track/mineCart.obj", glm::mat4(1.0f), glm::vec3(0.0), 19, 0.0, 0.0, 0.0);
+    auto cart = std::make_shared<Model>("../assets/track/cart/cart.obj", glm::mat4(1.0f), glm::vec3(309, -39.1, 131.35), 10, 0.0, 80.0, 0.0);
+    auto track = std::make_shared<Model>("../assets/track/track.obj", glm::mat4(1.0f), glm::vec3(313.2f, -57.4f, 179.0f), 111, 1.2, 82.5, 0.0);
+    auto tree = std::make_shared<Model>("../assets/tree/spookytree.obj", glm::mat4(1.0f), glm::vec3(0.0), 10, 0.0, 9166, 0.0, 0.0);
+    auto house = std::make_shared<Model>("../assets/house/hh.obj", glm::mat4(1.0f), glm::vec3(300.0, -47.0, 234), 121, 91.7, 90.0, 0.0);
+    auto monster = std::make_shared<Model>("../assets/monster/monster.obj", glm::mat4(1.0f), glm::vec3(0.0, 0.0, 0.0), 11, 0.0, 0.0, 0.0);
 
+    auto teeth = std::make_shared<Model>("../assets/Monster/teeth.obj", glm::mat4(1.0f), glm::vec3(0.0), 11, 0.0, 0.0, 0.0);
+    auto outhouseDoor = std::make_shared<Model>("../assets/Monster/door.obj", glm::mat4(1.0f), glm::vec3(0.0), 12, 0.0, 0.0, 0.0);
+    auto eyes = std::make_shared<Model>("../assets/Monster/eyes.obj", glm::mat4(1.0f), glm::vec3(0.0), 12, 0.0, 0.0, 0.0);
+    auto hallway = std::make_shared<Model>("../assets/hallway/hallway.obj", glm::mat4(1.0f), glm::vec3(0.0), 13, 0.0, 0.0, 0.0);
+    auto left = std::make_shared<Model>("../assets/player/nleft.obj", glm::mat4(1.0f), glm::vec3(0.0), 13, 0.0, 10.0, 0.0);
+    auto right = std::make_shared<Model>("../assets/player/nright.obj", glm::mat4(1.0f), glm::vec3(0.0), 13, 0.0, 10.0, 0.0);
+    std::vector<glm::mat4> translations(amount);
     outhouseDoor->setOrigin(glm::vec3(1.197, -0.00344, 0.4178));
     initInstancedObject(amount, tree, translations);
     auto world = physics::PhysicsWorld();
 
     Terrain terrain { 1, { "../assets/Water texture.png", "../assets/rock 01.jpg", "../assets/rock02 texture.jpg", "../assets/tilable img 0044 verydark.png" }, 5.0f };
-    track->position.y = -terrain.GetHeightInterpolated(track->position.x, track->position.y) - 1.0f;
-    cart->position.y += track->position.y;
-    house->position.y = track->position.y + 17.0f;
-    monster->position = glm::vec3(201.1470, 0, 300.8994);
-    camera.position.x = 250;
-    camera.position.z = 350;
-    camera.position.y = -terrain.GetHeightInterpolated(camera.position.x, camera.position.z);
-    camera.position.y += 20.0f;
-
     Renderer renderer { projection, camera, terrain };
-    renderer.enqueue(shader, { outhouseDoor, monster, teeth, eyes, track, house, cart, pipe, minecart });
-
+    renderer.enqueue(shader, { outhouseDoor, monster, teeth, eyes, track, house, cart, pipe, left, right });
     auto outhouseanimation = initOuthouseDoorAnimation(outhouseDoor);
     auto lastFrameTime = static_cast<float>(glfwGetTime());
     bool xChange = false;
     bool yChange = false;
     bool zChange = false;
-    while (!glfwWindowShouldClose(window)) {
+    bool position = false;
 
+    bool py = false;
+    while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        ImGui::Checkbox("Position or Pitch + Yaw", &position);
+        ImGui::Text("Camera position, X: %f Y: %f Z: %f", camera.position.x, camera.position.y, camera.position.z);
+        ImGui::Text("FPS: %f", 1.0f / deltaTime);
+        if (position) {
+            ImGui::Begin("Model Position Controls");
+            ImGui::Text("Adjust the position of models:");
+            ImGui::Checkbox("X Change", &xChange);
+            ImGui::Checkbox("Y Change", &yChange);
+            ImGui::Checkbox("Z Change", &zChange);
+            auto positionControl = [&](const char* label, Model& model) {
+                if (xChange) {
+                    ImGui::DragFloat((std::string(label) + " X").c_str(), &model.position.x, 0.1f, 0.0f, 0.0f, "%.3f");
+                }
+                if (yChange) {
+                    ImGui::DragFloat((std::string(label) + " Y").c_str(), &model.position.y, 0.1f, 0.0f, 0.0f, "%.3f");
+                }
+                if (zChange) {
+                    ImGui::DragFloat((std::string(label) + " Z").c_str(), &model.position.z, 0.1f, 0.0f, 0.0f, "%.3f");
+                }
+            };
 
-        // ImGui window to control model positions
-        ImGui::Begin("Model Position Controls");
-        ImGui::Text("Adjust the position of models:");
+            positionControl("Pipe", *pipe);
+            positionControl("Minecart", *minecart);
+            positionControl("Cart", *cart);
+            positionControl("Track", *track);
+            positionControl("Tree", *tree);
+            positionControl("House", *house);
+            positionControl("Monster", *monster);
+            positionControl("Teeth", *teeth);
+            positionControl("Eyes", *eyes);
+            positionControl("Hallway", *hallway);
+            positionControl("Left", *left);
+            positionControl("Right", *right);
+            ImGui::End();
+            ImGui::Render();
+        } else {
+            ImGui::Begin("Control Model Pitch and Yaw");
+            ImGui::Text("Adjust the orientation of models:");
+            ImGui::Checkbox("Pitch", &py);
+            auto pitchControl = [&](const char* label, Model& model) {
+                if (py) {
+                    ImGui::DragFloat((std::string(label) + " Pitch").c_str(), &model.pitch, 0.1f, -360.0f, 360.0f, "%.3f");
+                } else {
+                    ImGui::DragFloat((std::string(label) + " Yaw").c_str(), &model.yaw, 0.1f, -360.0f, 360.0f, "%.3f");
+                }
+            };
 
-        ImGui::Checkbox("X Change", &xChange);
-        ImGui::Checkbox("Y Change", &yChange);
-        ImGui::Checkbox("Z Change", &zChange);
-
-        auto positionControl = [&](const char* label, Model& model) {
-            // Update X position if X Change is checked
-            if (xChange) {
-                ImGui::DragFloat((std::string(label) + " X").c_str(), &model.position.x, 0.1f, 0.0f, 0.0f, "%.3f");
-            }
-            // Update Y position if Y Change is checked
-            if (yChange) {
-                ImGui::DragFloat((std::string(label) + " Y").c_str(), &model.position.y, 0.1f, 0.0f, 0.0f, "%.3f");
-            }
-            // Update Z position if Z Change is checked
-            if (zChange) {
-                ImGui::DragFloat((std::string(label) + " Z").c_str(), &model.position.z, 0.1f, 0.0f, 0.0f, "%.3f");
-            }
-        };
-
-        // Render position controls for each model
-        positionControl("Pipe", *pipe);
-        positionControl("Minecart", *minecart);
-        positionControl("Cart", *cart);
-        positionControl("Track", *track);
-        positionControl("Tree", *tree);
-        positionControl("House", *house);
-        positionControl("Monster", *monster);
-        positionControl("Teeth", *teeth);
-        positionControl("Eyes", *eyes);
-        positionControl("Hallway", *hallway);
-
-        ImGui::End();
-        ImGui::Render();
+            pitchControl("Pipe", *pipe);
+            pitchControl("Minecart", *minecart);
+            pitchControl("Cart", *cart);
+            pitchControl("Track", *track);
+            pitchControl("Tree", *tree);
+            pitchControl("House", *house);
+            pitchControl("Monster", *monster);
+            pitchControl("Teeth", *teeth);
+            pitchControl("Eyes", *eyes);
+            pitchControl("Hallway", *hallway);
+            pitchControl("Left", *left);
+            pitchControl("Right", *right);
+            ImGui::End();
+            ImGui::Render();
+        }
         glClearColor(0.4f, 0.1f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         float currentTime = static_cast<float>(glfwGetTime());
@@ -336,9 +350,16 @@ int main()
             glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(tree->meshes[i].indices.size()), GL_UNSIGNED_INT, 0, amount);
             glBindVertexArray(0);
         }
+
         processInput(window, terrain);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
+        left->position = camera.position + camera.front * 2.0f + -camera.right * 1.0f;
+        left->position.y -= 0.8f;
+        right->position = camera.position + camera.front * 2.0f + camera.right * 1.0f;
+        right->position.y -= 0.8f;
+        left->yaw = -camera.options.yaw;
+        right->yaw = -camera.options.yaw;
     }
 
     ImGui_ImplOpenGL3_Shutdown();
@@ -346,6 +367,8 @@ int main()
     ImGui::DestroyContext();
     glfwDestroyWindow(window);
     glfwTerminate();
+
+    renderer.printModelPositions();
     return 0;
 }
 
@@ -377,8 +400,6 @@ void processInput(GLFWwindow* window, Terrain& terrain)
         camera.processKeyboard(Camera::Movement::LEFT, deltaTime, true, terrain);
     else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.processKeyboard(Camera::Movement::RIGHT, deltaTime, true, terrain);
-    else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        std::cout << "X: " << camera.position.x << " Y: " << camera.position.y << " Z: " << camera.position.z << std::endl;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE)
         camera.processKeyboard(Camera::Movement::FORWARD, deltaTime, false, terrain);

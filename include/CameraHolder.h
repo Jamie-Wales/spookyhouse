@@ -18,7 +18,7 @@ public:
         currentCameraIndex = currentCameraIndex % hold.size();
     }
 
-    void addCamera(Camera camera)
+    void addCamera(Camera& camera)
     {
         hold.push_back(camera);
     }
@@ -28,9 +28,9 @@ public:
         return hold[currentCameraIndex].getCameraView();
     }
 
-    void processCamera(Camera::Movement move, float deltaTime)
+    void processCamera(Camera::Movement move, float deltaTime, Terrain& terrain)
     {
-        hold[currentCameraIndex].processKeyboard(move, deltaTime, true);
+        hold[currentCameraIndex].processKeyboard(move, deltaTime, true, terrain);
     }
     CameraHolder()
     {

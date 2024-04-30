@@ -29,12 +29,15 @@ public:
 
     int id;
     float scale = 1.0f;
-
-    Model(string const& path, glm::mat4 translation, glm::vec3 position, int id, bool gamma = false)
+    float roll = 0;
+    Model(string const& path, glm::mat4 translation, glm::vec3 position, int id, float pitch, float yaw, float roll, float gamma = false)
         : gammaCorrection(gamma)
         , translation(translation)
         , position(position)
         , id(id)
+        , pitch(pitch)
+        , yaw(yaw)
+        , roll(roll)
 
     {
         loadModel(path);
@@ -43,6 +46,16 @@ public:
     void setScale(float scale)
     {
         this->scale = scale;
+    }
+
+    void addPitch(float pitch)
+    {
+        this->pitch += pitch;
+    }
+
+    void addYaw(float yaw)
+    {
+        this->yaw += yaw;
     }
 
     void setOrigin(glm::vec3 origin)
@@ -59,22 +72,16 @@ public:
     void setPosition(glm::vec3 position) { this->position = position; }
 
 private:
-    // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
     void loadModel(string const& path)
     {
-        // read file via ASSIMP
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
-        // check for errors
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
         {
             cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
             return;
         }
-        // retrieve the directory path of the filepath
         directory = path.substr(0, path.find_last_of('/'));
-
-        // process ASSIMP's root node recursively
         boundingbox = scene->mMeshes[0]->mAABB;
         processNode(scene->mRootNode, scene);
     }
@@ -120,14 +127,11 @@ private:
 
             vertices.push_back(vertex);
         }
-        // now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
         for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
             aiFace face = mesh->mFaces[i];
-            // retrieve all indices of the face and store them in the indices vector
             for (unsigned int j = 0; j < face.mNumIndices; j++)
                 indices.push_back(face.mIndices[j]);
         }
-        // process materials
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
         vector<texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");

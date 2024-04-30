@@ -19,6 +19,7 @@ void Camera::updatePosition(float dt, Terrain& terrain)
 {
     velocity = Approach(velocityTarget, velocity, dt * 500.0f);
     position += velocity * dt;
+    checkXpos(terrain);
     velocity += velocity * dt;
 }
 void Camera::decrease(float deltaTime)
@@ -28,9 +29,8 @@ void Camera::decrease(float deltaTime)
 }
 void Camera::checkXpos(Terrain& terrain)
 {
-    if (this->position.y < -terrain.getTerPosition(this->position.x, this->position.z)) {
-        this->position.y = glm::mix(terrain.getTerPosition(this->position.x, this->position.z), this->position.y, 0.1f);
-        update();
+    if (this->position.y != -terrain.getTerPosition(this->position.x, this->position.z) + 20.0f) {
+        this->position.y = glm::mix(this->position.y, -terrain.getTerPosition(this->position.x, this->position.z) + 20.0f, 0.1f);
     }
 }
 glm::mat4 Camera::getCameraView()
@@ -53,45 +53,96 @@ void Camera::processMouseMovement(float x, float y)
     y *= options.mouseSensitivity;
     options.yaw += x;
     options.pitch += y;
-    if (options.pitch > 89.0f)
-        options.pitch = 89.0f;
-    if (options.pitch < -89.0f)
-        options.pitch = -89.0f;
+
+    if (options.yaw > 360.0f) {
+        options.yaw = 0.0f;
+
+    } else if (options.yaw < -360.0f) {
+        options.yaw = 0.0f;
+    }
+
+    if (options.pitch > 50.0f)
+        options.pitch = 50.0f;
+    if (options.pitch < -50.0f)
+        options.pitch = -50.0f;
     update();
 }
 
 void Camera::processKeyboard(Camera::Movement movement, float deltaTime, bool down, Terrain& terrain)
 {
-    if (down) {
-        switch (movement) {
-        case Movement::FORWARD:
-            velocityTarget = front * 1000.0f * deltaTime;
-            break;
-        case Movement::BACKWARD:
-            velocityTarget = -front * 1000.0f * deltaTime;
-            break;
-        case Movement::LEFT:
-            velocityTarget = -right * 1000.0f * deltaTime;
-            break;
-        case Movement::RIGHT:
-            velocityTarget = right * 1000.0f * deltaTime;
-            break;
-        }
+    if (firstPerson) {
+        if (down) {
+            switch (movement) {
+            case Movement::FORWARD:
+                velocityTarget.x = front.x * 1000.0f * deltaTime;
+                velocityTarget.y = 0.0f;
+                velocityTarget.z = front.z * 1000.0f * deltaTime;
+                break;
+            case Movement::BACKWARD:
 
+                velocityTarget.x = -front.x * 1000.0f * deltaTime;
+                velocityTarget.y = 0.0f;
+                velocityTarget.z = -front.z * 1000.0f * deltaTime;
+                break;
+            case Movement::LEFT:
+                velocityTarget.x = -right.x * 1000.0f * deltaTime;
+                velocityTarget.y = 0.0f;
+                velocityTarget.z = -right.z * 1000.0f * deltaTime;
+                break;
+            case Movement::RIGHT:
+                velocityTarget.x = right.x * 1000.0f * deltaTime;
+                velocityTarget.y = 0.0f;
+                velocityTarget.z = right.z * 1000.0f * deltaTime;
+                break;
+            }
+        } else {
+            switch (movement) {
+            case Movement::FORWARD:
+                velocityTarget = glm::vec3(0.0);
+                break;
+            case Movement::BACKWARD:
+                velocityTarget = glm::vec3(0.0);
+                break;
+            case Movement::LEFT:
+                velocityTarget = glm::vec3(0.0);
+                break;
+            case Movement::RIGHT:
+                velocityTarget = glm::vec3(0.0);
+                break;
+            }
+        }
     } else {
-        switch (movement) {
-        case Movement::FORWARD:
-            velocityTarget = glm::vec3(0.0);
-            break;
-        case Movement::BACKWARD:
-            velocityTarget = glm::vec3(0.0);
-            break;
-        case Movement::LEFT:
-            velocityTarget = glm::vec3(0.0);
-            break;
-        case Movement::RIGHT:
-            velocityTarget = glm::vec3(0.0);
-            break;
+        if (down) {
+            switch (movement) {
+            case Movement::FORWARD:
+                velocityTarget = front * 1000.0f * deltaTime;
+                break;
+            case Movement::BACKWARD:
+                velocityTarget = -front * 1000.0f * deltaTime;
+                break;
+            case Movement::LEFT:
+                velocityTarget = -right * 1000.0f * deltaTime;
+                break;
+            case Movement::RIGHT:
+                velocityTarget = right * 1000.0f * deltaTime;
+                break;
+            }
+
+        } else {
+            switch (movement) {
+            case Movement::FORWARD:
+                velocityTarget = glm::vec3(0.0);
+                break;
+            case Movement::BACKWARD:
+                velocityTarget = glm::vec3(0.0);
+                break;
+            case Movement::LEFT:
+                velocityTarget = glm::vec3(0.0);
+                break;
+            case Movement::RIGHT:
+                velocityTarget = glm::vec3(0.0);
+                break;
+            }
         }
     }
     update();
