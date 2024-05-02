@@ -1,3 +1,4 @@
+
 #include "Terrain.h"
 #include "./utils/Utilities.h"
 #include "./utils/Vertex.h"
@@ -36,14 +37,14 @@ void Terrain::faultFormationTerrain(int iterations, float minHeight, float maxHe
         getRandomPoint(p1, p2, this->terrainSize);
         int dirx = p2.x - p1.x;
         int dirz = p2.z - p1.z;
-        for (int z = 0; z < this->terrainSize; z++) {
-            for (int x = 0; x < this->terrainSize; x++) {
+        for (int x = 0; x < this->terrainSize; x++) {
+            for (int z = 0; z < this->terrainSize; z++) {
                 int dirx_in = x - p1.x;
                 int dirz_in = z - p1.z;
                 int cross = dirx_in * dirz - dirx * dirz_in;
                 if (cross > 0) {
-                    float currentHeight = heightMap(z, x);
-                    heightMap(z, x) = currentHeight + height;
+                    float currentHeight = heightMap(x, z);
+                    heightMap(x, z) = currentHeight + height;
                 }
             }
         }
@@ -62,6 +63,12 @@ void Terrain::CreateFaultFormation(int terrainSize, int iterations, float minHei
     this->heightMap = Array2D<float>(terrainSize, terrainSize, 0.0f);
     faultFormationTerrain(iterations, minHeight, maxHeight);
     heightMap.normalize(minHeight, maxHeight);
+    for (int x = 0; x < terrainSize; x++) {
+        for (int z = 0; z < terrainSize; z++) {
+            assert(heightMap(x, z) >= minHeight);
+            assert(heightMap(x, z) <= maxHeight);
+        }
+    }
 }
 
 Terrain::Terrain(float scale, std::initializer_list<const std::string> textureFiles, float textureScale)

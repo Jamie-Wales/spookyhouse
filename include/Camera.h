@@ -89,7 +89,7 @@ public:
         worldUp = up;
         right = glm::normalize(glm::cross(front, worldUp));
         options.pitch = 0.0;
-        options.yaw = -90.0;
+        options.yaw = 30.0;
         options.mouseSensitivity = 0.1;
         options.zoom = 45.0f;
         options.accelerationRate = 1.0f;
@@ -106,7 +106,7 @@ public:
         worldUp = up;
         right = glm::normalize(glm::cross(front, worldUp));
         options.pitch = 0.0;
-        options.yaw = -90.0;
+        options.yaw = 45.0f;
         options.mouseSensitivity = 0.1;
         options.zoom = 45.0f;
         update();

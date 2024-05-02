@@ -21,6 +21,7 @@ struct Vertex {
     void init(Terrain& terrain, int x, int z)
     {
         position = glm::vec3(x, -terrain.getHeight(x, z), z);
+
         float s = (float)terrain.terrainSize;
         float nZ = z / s;
         float nX = x / s;

@@ -27,10 +27,10 @@ public:
         : row(row)
         , col(col)
     {
-        (*data).resize(row);
-        for (int i = 0; i < col; i++) {
-            (*data)[i].resize(row);
-            for (int j = 0; j < row; j++) {
+        data->resize(row);
+        for (int i = 0; i < row; i++) { // Notice the change here, it should be row, not col.
+            (*data)[i].resize(col);
+            for (int j = 0; j < col; j++) { // And here, it should be col, not row.
                 (*data)[i][j] = t;
             }
         }
@@ -68,32 +68,35 @@ public:
 
     void GetMinMax(T& Min, T& Max)
     {
-        Max = Min = (*data)[0][0];
+        Max = (*data)[0][0];
+        Min = (*data)[0][0];
 
-        for (int i = 1; i < col; i++)
-            for (int j = 1; j < row; j++) {
+        for (int i = 0; i < row; i++) {
+            for (int j = 0; j < col; j++) {
                 if ((*data)[i][j] < Min) {
                     Min = (*data)[i][j];
                 }
-
                 if ((*data)[i][j] > Max) {
-                    Min = (*data)[i][j];
+                    Max = (*data)[i][j]; // This was incorrectly updating Min instead of Max.
                 }
             }
+        }
     }
 
     void normalize(T minRange, T maxRange)
     {
         T min, max;
         GetMinMax(min, max);
-        if (max <= min) {
+        if (max == min) {
             return;
         }
 
-        T minmaxdelta = max - min;
-        T minmarange = maxRange - minRange;
-        for (int i = 0; i < col; i++)
-            for (int j = 0; j < row; j++)
-                (*data)[i][j] = (((*data)[i][j] - min) / minmaxdelta) * minmarange + minRange;
+        T rangeDelta = max - min;
+        T targetRange = maxRange - minRange;
+        for (int i = 0; i < row; i++) {
+            for (int j = 0; j < col; j++) {
+                (*data)[i][j] = minRange + (targetRange * ((*data)[i][j] - min) / rangeDelta);
+            }
+        }
     }
 };

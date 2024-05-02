@@ -6,11 +6,12 @@
 #define MODELS_CAMERAHOLDER_H
 
 #include "Camera.h"
+#include <initializer_list>
 #include <vector>
 
 class CameraHolder {
 public:
-    std::vector<Camera> hold;
+    std::vector<std::shared_ptr<Camera>> hold;
     int currentCameraIndex = 0;
     void incrementCurrentCamera()
     {
@@ -18,19 +19,22 @@ public:
         currentCameraIndex = currentCameraIndex % hold.size();
     }
 
-    void addCamera(Camera& camera)
+    void addCamera(std::initializer_list<std::shared_ptr<Camera>> cams)
     {
-        hold.push_back(camera);
+
+        for (auto& cam : cams) {
+            hold.push_back(cam);
+        }
     }
 
-    glm::mat4 getCam()
+    std::shared_ptr<Camera> getCam()
     {
-        return hold[currentCameraIndex].getCameraView();
+        return hold[currentCameraIndex];
     }
 
     void processCamera(Camera::Movement move, float deltaTime, Terrain& terrain)
     {
-        hold[currentCameraIndex].processKeyboard(move, deltaTime, true, terrain);
+        hold[currentCameraIndex]->processKeyboard(move, deltaTime, true, terrain);
     }
     CameraHolder()
     {
@@ -39,12 +43,12 @@ public:
 
     void processMouseMovement(float d, float d1)
     {
-        hold[currentCameraIndex].processMouseMovement(d, d1);
+        hold[currentCameraIndex]->processMouseMovement(d, d1);
     }
 
     glm::vec3 camPos()
     {
-        return hold[currentCameraIndex].position;
+        return hold[currentCameraIndex]->position;
     }
 };
 

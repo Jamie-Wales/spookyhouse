@@ -20,10 +20,10 @@ private:
         glm::vec3(1.8392f, 0.16, 0.369f),
         glm::vec3(1.5085f, 0.185, 0.37f),
     };
-    Camera& cam;
 
 public:
-    Renderer(glm::mat4 projection, Camera& cam, Terrain& terrain)
+    std::shared_ptr<Camera> cam;
+    Renderer(glm::mat4 projection, std::shared_ptr<Camera> cam, Terrain& terrain)
         : projection(projection)
         , cam(cam)
         , terrain(terrain) {};
@@ -42,9 +42,9 @@ public:
 
     void lightingShader(Shader& lightingShader)
     {
-        lightingShader.setVec3("viewPos", cam.position);
+        lightingShader.setVec3("viewPos", cam->position);
         lightingShader.setFloat("shininess", 30);
-        lightingShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+        lightingShader.setVec3("dirLight.direction", 5.0f, 1.0f, 0.0);
         lightingShader.setVec3("dirLight.ambient", 0.2f, 0.2f, 0.2f);
         lightingShader.setVec3("dirLight.diffuse", 0.05f, 0.05f, 0.05f);
         lightingShader.setVec3("dirLight.specular", 0.2f, 0.2f, 0.2f);
@@ -93,7 +93,7 @@ public:
             shader->use();
             this->lightingShader(*shader);
             shader->setMat4("projection", projection);
-            shader->setMat4("view", cam.getCameraView());
+            shader->setMat4("view", cam->getCameraView());
 
             for (auto modelPtr : value) {
                 glm::mat4 model = glm::mat4(1.0f);
@@ -102,7 +102,7 @@ public:
                 model = glm::rotate(model, glm::radians(modelPtr->pitch), glm::vec3(1, 0, 0));
                 model = glm::rotate(model, glm::radians(modelPtr->roll), glm::vec3(0, 0, 1));
                 shader->setMat4("model", model);
-                modelPtr->Draw(*shader);
+                modelPtr->draw(*shader);
             }
         }
     }

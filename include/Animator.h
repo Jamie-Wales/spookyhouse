@@ -1,5 +1,6 @@
 #ifndef INCLUDE_INCLUDE_TRANFORMATION_H_
 #define INCLUDE_INCLUDE_TRANFORMATION_H_
+#include "Camera.h"
 #include "Model.h"
 #include <functional>
 #include <glm/common.hpp>
@@ -155,33 +156,26 @@ std::shared_ptr<AnimationCycle> initDoorAnimation(std::shared_ptr<Model> cartDoo
     return doorAnimation;
 }
 
-std::shared_ptr<AnimationCycle> houseDoorAnimation(std::shared_ptr<Model> houseDoor)
+std::shared_ptr<AnimationCycle> armAnimation(std::shared_ptr<Model>& leftArm, std::shared_ptr<Camera> camera)
 {
-    BaseAnimation open(2, [](float delta, std::shared_ptr<Model> model) {
-        // swap y and z and then negate
-        auto newPos = glm::translate(model->translation, glm::vec3(1.7461f, 0.1217f, 0.044948f));
-        newPos = glm::rotate(newPos, glm::radians(1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        newPos = glm::translate(newPos, glm::vec3(-1.7461f, -0.1217f, -0.044948f));
-        model->translation = newPos;
+    BaseAnimation open(5, [camera](float delta, std::shared_ptr<Model> model) {
+        auto newPos = camera->position;
+        model->position.y += 0.1f * delta;
+        newPos += model->position;
+        model->position = newPos;
     });
-    BaseAnimation closed(2, [](float delta, std::shared_ptr<Model> model) {
-        auto newPos = glm::translate(model->translation, glm::vec3(1.7461f, 0.1217f, 0.044948f));
-        newPos = glm::rotate(newPos, glm::radians(-1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        newPos = glm::translate(newPos, glm::vec3(-1.7461f, -0.1217f, -0.044948f));
-        model->translation = newPos;
+    BaseAnimation closed(5, [camera](float delta, std::shared_ptr<Model> model) {
+        auto newPos = camera->position;
+        model->position.y -= 0.1f * delta;
+        newPos += model->position;
+        model->position = newPos;
     });
-
-    State closedState(houseDoor, std::make_shared<BaseAnimation>(closed), true);
-    State openedState(houseDoor, std::make_shared<BaseAnimation>(open), true);
-
-    std::shared_ptr<State> closedStatePtr = std::make_shared<State>(closedState);
+    State closedState(leftArm, std::make_shared<BaseAnimation>(closed), true);
+    State openedState(leftArm, std::make_shared<BaseAnimation>(open), true);
     std::shared_ptr<State> openedStatePtr = std::make_shared<State>(openedState);
-
-    std::shared_ptr<AnimationCycle> doorAnimation = std::make_shared<AnimationCycle>();
-    doorAnimation->addState(closedStatePtr);
-    doorAnimation->addState(openedStatePtr);
-
-    return doorAnimation;
+    std::shared_ptr<State> closedStatePtr = std::make_shared<State>(closedState);
+    std::shared_ptr<AnimationCycle> arm = std::make_shared<AnimationCycle>();
+    return arm;
 }
 std::shared_ptr<AnimationCycle> initOuthouseDoorAnimation(std::shared_ptr<Model> houseDoor)
 {

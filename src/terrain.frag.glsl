@@ -1,4 +1,5 @@
 
+
 #version 330 core
 
 in vec3 FragPos;
@@ -57,3 +58,4 @@ vec3 CalcLighting(vec3 normal, vec3 lightDirection, vec3 viewDirection) {
 float diff = max(dot(normal, lightDirection), 0.0);
     return lightColor * diff;
 }
+

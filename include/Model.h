@@ -13,7 +13,17 @@
 using namespace std;
 
 unsigned int TextureFromFile(const char* path, const string& directory, bool gamma = false);
-class Model {
+class Drawable {
+public:
+    virtual void draw(Shader& shader) = 0;
+    glm::vec3 position;
+    BoundingBox boundingbox;
+    glm::mat4 translation;
+    float pitch;
+    float yaw;
+    float roll;
+};
+class Model : public Drawable {
 public:
     vector<texture> textures_loaded;
     vector<Mesh> meshes;
@@ -63,7 +73,7 @@ public:
         this->origin = origin;
     }
 
-    void Draw(Shader& shader)
+    void draw(Shader& shader)
     {
         for (unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].draw(shader);

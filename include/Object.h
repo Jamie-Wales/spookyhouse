@@ -8,8 +8,11 @@
 #include <glm/glm.hpp>
 #include <memory>
 namespace physics {
+
 struct Object {
 public:
+    bool sphere = true;
+    bool camera = false;
     Object() = default;
     Object(glm::vec3 position, glm::vec3 velocity, glm::vec3 force, float mass, std::shared_ptr<Model> model)
         : position(position)

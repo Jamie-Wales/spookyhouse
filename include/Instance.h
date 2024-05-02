@@ -4,21 +4,26 @@
 #include "Model.h"
 #include "Terrain.h"
 #include <memory>
-void initInstancedObject(int amount, std::shared_ptr<Model>& pModel, std::vector<glm::mat4>& translations)
+void initInstancedObject(int amount, std::shared_ptr<Model>& pModel, std::vector<glm::mat4>& translations, glm::vec3 housePosition, float radius, Terrain& terrain)
 {
-    float radius = 37.0;
-    float offset = 2.0f;
+    float offset = 320.0f;
     for (int i = 0; i < amount; i++) {
-        float offset = 25.0f;
         glm::mat4 model = glm::mat4(1.0f);
         float angle = (float)i / (float)amount * 360.0f;
-        float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-        float x = sin(angle) * radius + displacement;
-        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-        float z = cos(angle) * radius + displacement;
-        model = glm::translate(model, glm::vec3(x, 0.0, z));
-        float scale = static_cast<float>((rand() % 20) / 100.0 + 0.5);
-        model = glm::scale(model, glm::vec3(scale));
+        angle = glm::radians(angle);
+
+        float xDisplacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float zDisplacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+
+        float x = sin(angle) * radius + xDisplacement;
+        float z = cos(angle) * radius + zDisplacement;
+
+        x += housePosition.x;
+        z += housePosition.z;
+
+        if (x < 0.0f || x > terrain.terrainSize || z < 0.0f || z > terrain.terrainSize)
+            continue;
+        model = glm::translate(model, glm::vec3(x, -terrain.GetHeightInterpolated(x, z), z));
         translations[i] = model;
     }
 

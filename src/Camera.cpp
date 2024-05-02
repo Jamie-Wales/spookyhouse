@@ -17,7 +17,7 @@ void Camera::update()
 
 void Camera::updatePosition(float dt, Terrain& terrain)
 {
-    velocity = Approach(velocityTarget, velocity, dt * 500.0f);
+    velocity = Approach(velocityTarget, velocity, dt * 10000.0f);
     position += velocity * dt;
     checkXpos(terrain);
     velocity += velocity * dt;
@@ -29,6 +29,9 @@ void Camera::decrease(float deltaTime)
 }
 void Camera::checkXpos(Terrain& terrain)
 {
+    if (!firstPerson) {
+        return;
+    }
     if (this->position.y != -terrain.getTerPosition(this->position.x, this->position.z) + 20.0f) {
         this->position.y = glm::mix(this->position.y, -terrain.getTerPosition(this->position.x, this->position.z) + 20.0f, 0.1f);
     }
@@ -74,25 +77,24 @@ void Camera::processKeyboard(Camera::Movement movement, float deltaTime, bool do
         if (down) {
             switch (movement) {
             case Movement::FORWARD:
-                velocityTarget.x = front.x * 1000.0f * deltaTime;
+                velocityTarget.x = front.x * 100.0f;
                 velocityTarget.y = 0.0f;
-                velocityTarget.z = front.z * 1000.0f * deltaTime;
+                velocityTarget.z = front.z * 100.0f;
                 break;
             case Movement::BACKWARD:
-
-                velocityTarget.x = -front.x * 1000.0f * deltaTime;
+                velocityTarget.x = -front.x * 100.0f;
                 velocityTarget.y = 0.0f;
-                velocityTarget.z = -front.z * 1000.0f * deltaTime;
+                velocityTarget.z = -front.z * 100.0f;
                 break;
             case Movement::LEFT:
-                velocityTarget.x = -right.x * 1000.0f * deltaTime;
+                velocityTarget.x = -right.x * 100.0f;
                 velocityTarget.y = 0.0f;
-                velocityTarget.z = -right.z * 1000.0f * deltaTime;
+                velocityTarget.z = -right.z * 100.0f;
                 break;
             case Movement::RIGHT:
-                velocityTarget.x = right.x * 1000.0f * deltaTime;
+                velocityTarget.x = right.x * 100.0f;
                 velocityTarget.y = 0.0f;
-                velocityTarget.z = right.z * 1000.0f * deltaTime;
+                velocityTarget.z = right.z * 100.0f;
                 break;
             }
         } else {
@@ -115,19 +117,18 @@ void Camera::processKeyboard(Camera::Movement movement, float deltaTime, bool do
         if (down) {
             switch (movement) {
             case Movement::FORWARD:
-                velocityTarget = front * 1000.0f * deltaTime;
+                velocityTarget = front * 100.0f;
                 break;
             case Movement::BACKWARD:
-                velocityTarget = -front * 1000.0f * deltaTime;
+                velocityTarget = -front * 100.0f;
                 break;
             case Movement::LEFT:
-                velocityTarget = -right * 1000.0f * deltaTime;
+                velocityTarget = -right * 100.0f;
                 break;
             case Movement::RIGHT:
-                velocityTarget = right * 1000.0f * deltaTime;
+                velocityTarget = right * 100.0f;
                 break;
             }
-
         } else {
             switch (movement) {
             case Movement::FORWARD:
