@@ -94,7 +94,6 @@ glm::quat rotationFromVectors(glm::vec3 start, glm::vec3 dest)
         rotationAxis.z * invs);
 }
 
-glm::vec3 lightPos(0.0f, -1.0f, -0.3f);
 float rotation = 0.0f;
 bool opening;
 bool cameraChange = false;
@@ -173,9 +172,7 @@ void bindLightCube(unsigned int& VAO, unsigned int& VBO)
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
-
 void processInput(GLFWwindow* window, std::shared_ptr<Terrain> terrain);
-
 auto height = 2000;
 CameraHolder cameraHolder;
 std::shared_ptr<Camera> camera;
@@ -247,25 +244,19 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     } else if (key == GLFW_KEY_W && action == GLFW_RELEASE) {
         if (player.state != PlayerState::State::FLYING)
             player.state = PlayerState::State::IDLE;
-    }
-
-    if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+    } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
         if (player.state != PlayerState::State::FLYING)
             player.state = PlayerState::State::RUNNING;
     } else if (key == GLFW_KEY_S && action == GLFW_RELEASE) {
         if (player.state != PlayerState::State::FLYING)
             player.state = PlayerState::State::IDLE;
-    }
-
-    if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+    } else if (key == GLFW_KEY_A && action == GLFW_PRESS) {
         if (player.state != PlayerState::State::FLYING)
             player.state = PlayerState::State::RUNNING;
     } else if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
         if (player.state != PlayerState::State::FLYING)
             player.state = PlayerState::State::IDLE;
-    }
-
-    if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+    } else if (key == GLFW_KEY_D && action == GLFW_PRESS) {
         if (player.state != PlayerState::State::FLYING)
             player.state = PlayerState::State::RUNNING;
     } else if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
@@ -276,15 +267,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 int main()
 {
-
     if (!glfwInit())
         return 1;
-
     const char* glsl_version = "#version 330";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
     GLFWwindow* window = glfwCreateWindow(3000, 2000, "Spooky House", NULL, NULL);
     if (window == NULL)
         return 1;
@@ -294,7 +282,6 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetKeyCallback(window, key_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
     if (glewInit() != GLEW_OK) {
         std::cerr << "Failed to initialize OpenGL loader!" << std::endl;
         return 1;
@@ -303,35 +290,26 @@ int main()
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
-
     ImGui::StyleColorsDark();
-
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
     glEnable(GL_DEPTH_TEST);
-
     Camera fly = Camera { 606 };
     Camera fps = Camera { 101, true };
     cameraHolder.addCamera({ std::make_shared<Camera>(fly), std::make_shared<Camera>(fps) });
     camera = cameraHolder.getCam();
-
     CubicSpline cSpline = CubicSpline();
 
     Shader shader("../src/modelLoading.vert.glsl", "../src/modelLoading.frag.glsl");
     Shader treeShader("../src/tree.vert.glsl", "../src/tree.frag.glsl");
     Shader basic("../src/basic.vert.glsl", "../src/basic.frag.glsl");
-    auto gun = std::make_shared<Model>("../assets/player/pistolbut.obj", glm::mat4(1.0f), glm::vec3(0.0, 0.0, 0.0), 1,
-        0.0, 0.0, 0.0);
-    auto scope = std::make_shared<Model>("../assets/player/pistolscope.obj", glm::mat4(1.0f), glm::vec3(0.0, 0.0, 0.0), 2,
-        0.0, 0.0, 0.0);
-    auto cart = std::make_shared<Model>("../assets/cart/cart.obj", glm::mat4(1.0f), glm::vec3(309, 3.0, 131.35), 3,
-        0.0, 80.0, 0.0);
-    auto tree = std::make_shared<Model>("../assets/tree/spookyTree.obj", glm::mat4(1.0f), glm::vec3(0.0), 4, 0.0, 9166,
-        0.0, 0.0);
-    auto left = std::make_shared<Model>("../assets/player/nleft.obj", glm::mat4(1.0f), glm::vec3(0.0), 5, 0.0, 10.0,
-        0.0);
-    auto right = std::make_shared<Model>("../assets/player/nright.obj", glm::mat4(1.0f), glm::vec3(0.0), 6, 0.0, 10.0,
-        0.0);
+
+    auto gun = std::make_shared<Model>("../assets/player/pistolbut.obj", glm::mat4(1.0f), glm::vec3(0.0, 0.0, 0.0), 1, 0.0, 0.0, 0.0);
+    auto scope = std::make_shared<Model>("../assets/player/pistolscope.obj", glm::mat4(1.0f), glm::vec3(0.0, 0.0, 0.0), 2, 0.0, 0.0, 0.0);
+    auto cart = std::make_shared<Model>("../assets/cart/cart.obj", glm::mat4(1.0f), glm::vec3(309, 3.0, 131.35), 3, 0.0, 80.0, 0.0);
+    auto tree = std::make_shared<Model>("../assets/tree/spookyTree.obj", glm::mat4(1.0f), glm::vec3(0.0), 4, 0.0, 9166, 0.0, 0.0);
+    auto left = std::make_shared<Model>("../assets/player/nleft.obj", glm::mat4(1.0f), glm::vec3(0.0), 5, 0.0, 10.0, 0.0);
+    auto right = std::make_shared<Model>("../assets/player/nright.obj", glm::mat4(1.0f), glm::vec3(0.0), 6, 0.0, 10.0, 0.0);
 
     std::vector<glm::mat4> translations(amount);
     world = physics::PhysicsWorld();
@@ -396,6 +374,7 @@ int main()
     Renderer renderer { projection, camera, *terrain };
     renderer.enqueue(shader, { track, house, cart });
     player = { left, right, gun };
+    glm::vec3& lightPos = renderer.lightPos;
 
     //    for (int i = 0; i < cSpline.m_points.size(); i++) {
     //        auto pipe = std::make_shared<Model>("../assets/player/nleft.obj", glm::mat4(1.0f), splinearray[i], 4, 0.0, 0.0, 0.0);
@@ -460,12 +439,25 @@ int main()
                         ImGui::DragFloat((std::string(label) + " Z").c_str(), &model.position.z, 0.1f, 0.0f, 0.0f, "%.3f");
                     }
                 };
+
+                auto lightControl = [&](const char* label, glm::vec3& pos) {
+                    if (xChange) {
+                        ImGui::DragFloat((std::string(label) + " X").c_str(), &pos.x, 0.1f, 0.0f, 0.0f, "%.3f");
+                    }
+                    if (yChange) {
+                        ImGui::DragFloat((std::string(label) + " Y").c_str(), &pos.y, 0.1f, 0.0f, 0.0f, "%.3f");
+                    }
+                    if (zChange) {
+                        ImGui::DragFloat((std::string(label) + " Z").c_str(), &pos.z, 0.1f, 0.0f, 0.0f, "%.3f");
+                    }
+                };
                 positionControl("Cart", *cart);
                 positionControl("Track", *track);
                 positionControl("Tree", *tree);
                 positionControl("House", *house);
                 positionControl("Left", *left);
                 positionControl("Right", *right);
+                lightControl("Light", lightPos);
                 ImGui::End();
                 ImGui::Render();
             } else {
@@ -533,7 +525,6 @@ int main()
         while ((err = glGetError()) != GL_NO_ERROR) {
             std::cerr << "OpenGL error: " << err << std::endl;
         }
-
         terrain->terrainShader.use();
         terrain->terrainShader.setMat4("projection", projection);
         terrain->terrainShader.setMat4("view", camera->getCameraView());

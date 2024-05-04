@@ -16,7 +16,7 @@ struct Vertex {
     {
         x = std::max(0, std::min(x, terrain.terrainSize - 1));
         z = std::max(0, std::min(z, terrain.terrainSize - 1));
-        return terrain.getHeight(x, z);
+        return -terrain.getHeight(x, z);
     }
     void init(Terrain& terrain, int x, int z)
     {

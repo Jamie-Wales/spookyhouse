@@ -1,12 +1,11 @@
 
-
 #version 330 core
 
 in vec3 FragPos;
 in vec3 Normal;
 in vec2 Tex;
 in vec4 Color;
-in vec3 aPos;
+
 uniform vec3 viewPos;
 
 out vec4 FragColor;
@@ -30,17 +29,17 @@ vec3 CalcLighting(vec3 normal, vec3 lightDir, vec3 viewDir);
 
 void main() {
     vec3 norm = normalize(Normal);
-    vec3 viewDir = normalize(FragPos- viewPos);
-    vec3 lightDirection = normalize(lightDir);
-
+    vec3 viewDir = normalize(viewPos - FragPos);
+    vec3 lightDirection = normalize(-lightDir);
     vec4 TexColor = CalcTexColor(); 
     vec3 lighting = CalcLighting(norm, lightDirection, viewDir);
 
-    FragColor = vec4(TexColor) * vec4(lighting, 1.0);
+    FragColor = TexColor * vec4(lighting, 1.0);
+
 }
 
 vec4 CalcTexColor() {
-    float Height = -aPos.y;
+    float Height = -FragPos.y;
     if (Height < gHeight0) {
        return texture(gTextureHeight0, Tex);
     } else if (Height < gHeight1) {
@@ -55,7 +54,8 @@ vec4 CalcTexColor() {
 }
 
 vec3 CalcLighting(vec3 normal, vec3 lightDirection, vec3 viewDirection) {
-float diff = max(dot(normal, lightDirection), 0.0);
-    return lightColor * diff;
+    float diff = max(dot(normal, lightDirection), 0.0);
+    vec3 halfwayDir = normalize(lightDir + viewPos);  
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), 16.0);
+    return (diff * lightColor + spec * lightColor + lightColor*0.125);
 }
-
