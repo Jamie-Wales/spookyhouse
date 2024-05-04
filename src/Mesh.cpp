@@ -4,17 +4,19 @@
 
 #include "Mesh.h"
 
-Mesh::Mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std::vector<texture> textures, aiAABB boundingbox)
+Mesh::Mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std::vector<texture> textures, aiAABB boundingbox, float pitch, float yaw, glm::vec3 position)
     : vertices { vertices }
     , indices { indices }
     , textures { textures }
-    , boundingbox(boundingbox)
+
 {
+    this->boundingbox = BoundingBox{boundingbox, position, pitch, yaw};
     setUpMesh();
 }
 
 void Mesh::draw(Shader& shader)
 {
+
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
     unsigned int normalNr = 1;

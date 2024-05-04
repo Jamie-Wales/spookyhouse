@@ -5,4 +5,5 @@
 #ifndef SPOOKY_RESOLVE_H
 #define SPOOKY_RESOLVE_H
 
+
 #endif //SPOOKY_RESOLVE_H

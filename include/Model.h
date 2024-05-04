@@ -51,7 +51,6 @@ public:
 
     {
         loadModel(path);
-        boundingbox.addPostion(position);
     }
     void setScale(float scale)
     {
@@ -92,7 +91,7 @@ private:
             return;
         }
         directory = path.substr(0, path.find_last_of('/'));
-        boundingbox = scene->mMeshes[0]->mAABB;
+        this->boundingbox = BoundingBox(scene->mMeshes[0]->mAABB, this->position, this->pitch, this->yaw);
         processNode(scene->mRootNode, scene);
     }
 
@@ -152,7 +151,7 @@ private:
         textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
         std::vector<texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-        return Mesh(vertices, indices, textures, mesh->mAABB);
+        return Mesh(vertices, indices, textures, mesh->mAABB, this->pitch, this->yaw, this->position);
     }
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet.

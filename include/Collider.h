@@ -61,21 +61,39 @@ class Collider {
 public:
     SweepAndPrune sweepAndPrune;
 
-    void addModel(std::shared_ptr<Model> &model) {
+    void addModel(std::shared_ptr<Model>& model)
+    {
         sweepAndPrune.addModel(model);
     }
 
-    void checkCollision(const std::shared_ptr<CollisionPacket> &colPacket, Sphere &secondMesh) {
-        Sphere &collpacketSphere = colPacket->sphere;
+    void addCamera(std::shared_ptr<Camera>& camera)
+    {
+        sweepAndPrune.addCamera(camera);
+    }
+
+    void checkCollision(const std::shared_ptr<CollisionPacket>& colPacket, Sphere& secondMesh)
+    {
+        Sphere& collpacketSphere = colPacket->sphere;
     }
 
     std::vector<BroadCollision>
-    broadCollide(std::shared_ptr<Model> &model) {
+    broadCollide(std::shared_ptr<Model>& model)
+    {
         sweepAndPrune.UpdateObject(model);
-        return sweepAndPrune.getTrueCollisions();
+        auto col = sweepAndPrune.getTrueCollisions();
+        sweepAndPrune.printTrueCollisions(col);
+        return col;
     }
 
-    void checkCollisions(const std::shared_ptr<CollisionPacket> &colPacket, Sphere &secondMesh) {
+    std::vector<BroadCollision> broadCollide(std::shared_ptr<Camera> camera) {
+        sweepAndPrune.updateObject(camera);
+        auto col = sweepAndPrune.getTrueCollisions();
+        sweepAndPrune.printTrueCollisions(col);
+        return col;
+    }
+
+    void checkCollisions(const std::shared_ptr<CollisionPacket>& colPacket, Sphere& secondMesh)
+    {
         if (checkSphereCollision(colPacket->sphere, secondMesh)) {
             colPacket->foundCollision = true;
             colPacket->intersectionPoint = (colPacket->sphere.center + secondMesh.center) / 2.0f;
@@ -85,9 +103,10 @@ public:
 
     void
     resolveCollisions(
-            std::vector<BroadCollision> broadphasePairs,
-            std::shared_ptr<std::unordered_map<int, std::shared_ptr<physics::Object>>> objectMap, float dt) {
-        for (auto &pair: broadphasePairs) {
+        std::vector<BroadCollision> broadphasePairs,
+        std::shared_ptr<std::unordered_map<int, std::shared_ptr<physics::Object>>> objectMap, float dt)
+    {
+        for (auto& pair : broadphasePairs) {
             auto sphereA = boundingBoxToSphere(pair.firstMesh->boundingbox);
             auto sphereB = boundingBoxToSphere(pair.secondMesh->boundingbox);
             auto colPacketA = std::make_shared<CollisionPacket>();
@@ -102,7 +121,7 @@ public:
             if (colPacketA->foundCollision || colPacketB->foundCollision) {
                 glm::vec3 collisionNormal = glm::normalize(colPacketB->obj->position - colPacketA->obj->position);
                 float relativeVelocity = glm::dot(colPacketB->obj->velocity - colPacketA->obj->velocity,
-                                                  collisionNormal);
+                    collisionNormal);
                 if (relativeVelocity < 0)
                     continue;
 
@@ -113,10 +132,8 @@ public:
                 colPacketA->obj->velocity -= impulse / colPacketA->obj->mass;
                 colPacketB->obj->velocity += impulse / colPacketB->obj->mass;
 
-                float penetrationDepth = (sphereA.radius + sphereB.radius) -
-                                         glm::distance(colPacketA->obj->position, colPacketB->obj->position);
-                glm::vec3 correction =
-                        (penetrationDepth * collisionNormal) * 0.25f;
+                float penetrationDepth = (sphereA.radius + sphereB.radius) - glm::distance(colPacketA->obj->position, colPacketB->obj->position);
+                glm::vec3 correction = (penetrationDepth * collisionNormal) * 0.25f;
                 colPacketA->obj->position += correction;
                 colPacketB->obj->position -= correction;
 

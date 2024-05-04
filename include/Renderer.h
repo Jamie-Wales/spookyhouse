@@ -11,7 +11,7 @@
 class Renderer {
 
 private:
-    std::unordered_map<unsigned int, std::vector<std::shared_ptr<Model>>> renderQueue;
+    std::unordered_map<unsigned int, std::unordered_map<int, std::shared_ptr<Model>>> renderQueue;
     std::unordered_map<unsigned int, std::shared_ptr<Shader>> shaders;
     glm::mat4 projection;
     glm::mat4 cameraMatrix;
@@ -22,6 +22,7 @@ private:
     };
 
 public:
+    glm::vec3 lightPos = glm::vec3(1.8392f, 0.16, 0.369f);
     std::shared_ptr<Camera> cam;
     Renderer(glm::mat4 projection, std::shared_ptr<Camera> cam, Terrain& terrain)
         : projection(projection)
@@ -30,13 +31,13 @@ public:
     void enqueue(const Shader& shader, std::initializer_list<std::shared_ptr<Model>> model)
     {
         for (auto& m : model) {
-            renderQueue[shader.ID].push_back(m);
+            renderQueue[shader.ID][m->id] = m;
             shaders[shader.ID] = std::make_shared<Shader>(shader);
         }
     }
     void enqueue(const Shader& shader, std::shared_ptr<Model> model)
     {
-        renderQueue[shader.ID].push_back(model);
+        renderQueue[shader.ID][model->id] = model;
         shaders[shader.ID] = std::make_shared<Shader>(shader);
     };
 
@@ -44,7 +45,7 @@ public:
     {
         lightingShader.setVec3("viewPos", cam->position);
         lightingShader.setFloat("shininess", 30);
-        lightingShader.setVec3("dirLight.direction", 5.0f, 1.0f, 0.0);
+        lightingShader.setVec3("dirLight.direction", lightPos);
         lightingShader.setVec3("dirLight.ambient", 0.2f, 0.2f, 0.2f);
         lightingShader.setVec3("dirLight.diffuse", 0.05f, 0.05f, 0.05f);
         lightingShader.setVec3("dirLight.specular", 0.2f, 0.2f, 0.2f);
@@ -65,27 +66,16 @@ public:
         lightingShader.setFloat("pointLights[1].quadratic", 0.032f);
     }
 
-    std::vector<std::shared_ptr<Model>> getAllModels()
+    void addModel(int shaderId, std::shared_ptr<Model> model)
     {
-        std::vector<std::shared_ptr<Model>> allModels;
-        for (auto& [key, value] : renderQueue) {
-            for (auto modelPtr : value) {
-                allModels.push_back(modelPtr);
-            }
-        }
-        return allModels;
+        renderQueue[shaderId][model->id] = model;
     }
 
-    void printModelPositions()
+    void removeModel(int shaderId, std::shared_ptr<Model> model)
     {
-        for (auto& [key, value] : renderQueue) {
-            for (auto modelPtr : value) {
-                std::cout << "SHADER -> " << key << " POSITION ";
-                std::cout << "ID -> " << modelPtr->id << std::endl;
-                std::cout << modelPtr->position.x << " " << modelPtr->position.y << " " << modelPtr->position.z << std::endl;
-            }
-        }
+        renderQueue[shaderId].erase(model->id);
     }
+
     void renderAll()
     {
         for (auto& [key, value] : renderQueue) {
@@ -94,8 +84,7 @@ public:
             this->lightingShader(*shader);
             shader->setMat4("projection", projection);
             shader->setMat4("view", cam->getCameraView());
-
-            for (auto modelPtr : value) {
+            for (auto [key, modelPtr] : value) {
                 glm::mat4 model = glm::mat4(1.0f);
                 model = glm::translate(model, modelPtr->position);
                 model = glm::rotate(model, glm::radians(modelPtr->yaw), glm::vec3(0, 1, 0));

@@ -12,7 +12,7 @@ public:
 
     explicit Cube(const BoundingBox& box)
     {
-        std::vector<glm::vec3> vertices = box.getCorners();
+        std::vector<glm::vec3> vertices;
 
         std::vector<unsigned int> indices = {
             0, 1, 2, 2, 1, 3, // Front face
