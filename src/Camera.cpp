@@ -15,7 +15,8 @@ void Camera::update()
     up = glm::normalize(glm::cross(right, front));
 }
 
-void Camera::updatePosition(float dt, Terrain& terrain) {
+void Camera::updatePosition(float dt, Terrain& terrain)
+{
     velocity = Approach(velocityTarget, velocity, dt * 10000.0f);
     position += velocity * dt;
     checkXpos(terrain);
@@ -67,10 +68,9 @@ void Camera::processMouseMovement(float x, float y)
     if (options.pitch < -50.0f)
         options.pitch = -50.0f;
     update();
-
 }
 
-void Camera::processKeyboard(Camera::Movement movement, float deltaTime, bool down, Terrain& terrain)
+void Camera::processKeyboard(Camera::Movement movement, float deltaTime, bool down, std::shared_ptr<Terrain> terrain)
 {
     if (firstPerson) {
         if (down) {
@@ -146,6 +146,6 @@ void Camera::processKeyboard(Camera::Movement movement, float deltaTime, bool do
         }
     }
     update();
-    updatePosition(deltaTime, terrain);
+    updatePosition(deltaTime, *terrain);
     alignWithCamera();
 }

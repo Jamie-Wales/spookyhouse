@@ -22,12 +22,16 @@ private:
     };
 
 public:
-    glm::vec3 lightPos = glm::vec3(1.8392f, 0.16, 0.369f);
+    glm::vec3 lightPos;
     std::shared_ptr<Camera> cam;
     Renderer(glm::mat4 projection, std::shared_ptr<Camera> cam, Terrain& terrain)
         : projection(projection)
         , cam(cam)
-        , terrain(terrain) {};
+        , terrain(terrain)
+    {
+        lightPos = cam->position;
+    };
+
     void enqueue(const Shader& shader, std::initializer_list<std::shared_ptr<Model>> model)
     {
         for (auto& m : model) {

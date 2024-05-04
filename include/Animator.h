@@ -1,6 +1,5 @@
 #ifndef INCLUDE_INCLUDE_TRANFORMATION_H_
 #define INCLUDE_INCLUDE_TRANFORMATION_H_
-#include "Camera.h"
 #include "Model.h"
 #include <functional>
 #include <glm/common.hpp>
@@ -155,13 +154,13 @@ std::shared_ptr<AnimationCycle> initDoorAnimation(std::shared_ptr<Model> cartDoo
     return doorAnimation;
 }
 
-std::shared_ptr<AnimationCycle> armAnimation(std::shared_ptr<Model>& leftArm, std::shared_ptr<Camera> camera, bool leftright = false)
+std::shared_ptr<AnimationCycle> armAnimation(std::shared_ptr<Model>& leftArm, bool leftright = false)
 {
-    BaseAnimation open(5, [camera](float delta, std::shared_ptr<Model> model) {
-        model->roll -= 2.0 * delta;
+    BaseAnimation open(0.2, [](float delta, std::shared_ptr<Model> model) {
+        model->roll -= 50.0 * delta;
     });
-    BaseAnimation closed(5, [camera](float delta, std::shared_ptr<Model> model) {
-        model->roll += 2.0 * delta;
+    BaseAnimation closed(0.2, [](float delta, std::shared_ptr<Model> model) {
+        model->roll += 50.0 * delta;
     });
 
     State closedState(leftArm, std::make_shared<BaseAnimation>(closed), true);
@@ -176,16 +175,18 @@ std::shared_ptr<AnimationCycle> armAnimation(std::shared_ptr<Model>& leftArm, st
         animation->addState(openedStatePtr);
         animation->addState(closedStatePtr);
     }
-    std::shared_ptr<AnimationCycle> arm = std::make_shared<AnimationCycle>();
-    return arm;
+    return animation;
 }
+
 std::shared_ptr<AnimationCycle> initGunHouseAnimation(std::shared_ptr<Model> gun)
 {
     BaseAnimation open(0.2, [](float delta, std::shared_ptr<Model> model) {
-        model->roll -= 50.0 * delta;
+        model->roll -= 4.0 * (delta * 30);
+        model->position.x += 0.1;
     });
     BaseAnimation closed(0.2, [](float delta, std::shared_ptr<Model> model) {
-        model->roll += 50.0 * delta;
+        model->roll += 4.0 * (delta * 30);
+        model->position.x += 0.1;
     });
 
     State closedState(gun, std::make_shared<BaseAnimation>(closed), true);

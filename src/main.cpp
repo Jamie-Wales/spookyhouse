@@ -29,6 +29,7 @@
 #define TERRAINZ 700.0f
 float down = 0;
 bool updown = false;
+std::shared_ptr<Terrain> terrain;
 
 bool enabled = false;
 
@@ -173,7 +174,7 @@ void bindLightCube(unsigned int& VAO, unsigned int& VBO)
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 
-void processInput(GLFWwindow* window, Terrain& terrain);
+void processInput(GLFWwindow* window, std::shared_ptr<Terrain> terrain);
 
 auto height = 2000;
 CameraHolder cameraHolder;
@@ -201,10 +202,23 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             player.state = PlayerState::State::FLYING;
             player.changed = true;
             break;
+        case PlayerState::State::RUNNING:
+            player.state = PlayerState::State::FLYING;
+            player.changed = true;
+            break;
         case PlayerState::State::FLYING:
             player.state = PlayerState::State::IDLE;
             player.changed = true;
             break;
+        }
+    }
+    if (key == GLFW_KEY_E && action == GLFW_RELEASE) {
+        for (auto physobj : world.triggers) {
+            switch (physobj->model->id) {
+            case 10:
+                insideCart = !insideCart;
+                return;
+            }
         }
     }
 
@@ -227,6 +241,37 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         }
         debug = !debug;
     }
+    if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+        if (player.state != PlayerState::State::FLYING)
+            player.state = PlayerState::State::RUNNING;
+    } else if (key == GLFW_KEY_W && action == GLFW_RELEASE) {
+        if (player.state != PlayerState::State::FLYING)
+            player.state = PlayerState::State::IDLE;
+    }
+
+    if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+        if (player.state != PlayerState::State::FLYING)
+            player.state = PlayerState::State::RUNNING;
+    } else if (key == GLFW_KEY_S && action == GLFW_RELEASE) {
+        if (player.state != PlayerState::State::FLYING)
+            player.state = PlayerState::State::IDLE;
+    }
+
+    if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+        if (player.state != PlayerState::State::FLYING)
+            player.state = PlayerState::State::RUNNING;
+    } else if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
+        if (player.state != PlayerState::State::FLYING)
+            player.state = PlayerState::State::IDLE;
+    }
+
+    if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+        if (player.state != PlayerState::State::FLYING)
+            player.state = PlayerState::State::RUNNING;
+    } else if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
+        if (player.state != PlayerState::State::FLYING)
+            player.state = PlayerState::State::IDLE;
+    }
 }
 
 int main()
@@ -236,7 +281,6 @@ int main()
         return 1;
 
     const char* glsl_version = "#version 330";
-
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -291,11 +335,12 @@ int main()
 
     std::vector<glm::mat4> translations(amount);
     world = physics::PhysicsWorld();
-    Terrain terrain { 1, { "../assets/Water texture.png", "../assets/rock 01.jpg", "../assets/rock02 texture.jpg", "../assets/tilable img 0044 verydark.png" }, 5.0f };
+    Terrain ter { 1, { "../assets/Water texture.png", "../assets/rock 01.jpg", "../assets/rock02 texture.jpg", "../assets/tilable img 0044 verydark.png" }, 5.0f };
+    terrain = std::make_shared<Terrain>(ter);
     auto house = std::make_shared<Model>("../assets/house/hh.obj", glm::mat4(1.0f),
-        glm::vec3(300.0, (-terrain.GetHeightInterpolated(300.0, 234.0) + 28.0f), 234),
+        glm::vec3(300.0, (-terrain->GetHeightInterpolated(300.0, 234.0) + 28.0f), 234),
         60, 92, 90.0, 0.0);
-    initInstancedObject(amount, tree, translations, house->position, 560.0f, terrain);
+    initInstancedObject(amount, tree, translations, house->position, 560.0f, *terrain);
     auto track = std::make_shared<Model>("../assets/track/track.obj", glm::mat4(1.0f),
         glm::vec3(305.2f, house->position.y - 13.0, 177.5f), 111, 3.0, 82.5, -3.0);
 
@@ -348,7 +393,7 @@ int main()
     glBufferData(GL_ARRAY_BUFFER, splinearray.size() * sizeof(glm::vec3), splinearray.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    Renderer renderer { projection, camera, terrain };
+    Renderer renderer { projection, camera, *terrain };
     renderer.enqueue(shader, { track, house, cart });
     player = { left, right, gun };
 
@@ -368,21 +413,15 @@ int main()
         glfwPollEvents();
         camera = cameraHolder.getCam();
         renderer.cam = camera;
-        if (player.state == PlayerState::State::FLYING && player.changed == true) {
+        if (player.state == PlayerState::State::FLYING && player.changed) {
             renderer.removeModel(shader.ID, left);
             renderer.removeModel(shader.ID, right);
             renderer.removeModel(shader.ID, gun);
             renderer.removeModel(shader.ID, scope);
             player.changed = false;
-        } else if (player.state == PlayerState::State::IDLE || player.state == PlayerState::State::RUNNING) {
+        } else if ((player.state == PlayerState::State::IDLE || player.state == PlayerState::State::RUNNING) && player.changed) {
             renderer.addModel(shader.ID, left);
             renderer.addModel(shader.ID, right);
-            left->position.x = camera->position.x + camera->front.x * 2.0f + -camera->right.x * 1.0f;
-            left->position.z = camera->position.z + camera->front.z * 2.0f + -camera->right.z * 1.0f;
-            right->position.x = camera->position.x + camera->front.x * 2.0f + camera->right.x * 1.0f;
-            right->position.z = camera->position.z + camera->front.z * 2.0f + camera->right.z * 1.0f;
-            left->position.y = camera->position.y - 0.8f;
-            right->position.y = camera->position.y - 0.8f;
             player.changed = false;
         }
         float currentFrameTime = static_cast<float>(glfwGetTime());
@@ -471,7 +510,7 @@ int main()
         glClearColor(0.4f, 0.1f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderer.renderAll();
-        world.tick(deltaTime, terrain);
+        world.tick(deltaTime, *terrain);
         float totalDuration = 10.0f;
         if (insideCart) {
             float currentTime = fmod(currentFrameTime, totalDuration);
@@ -495,16 +534,16 @@ int main()
             std::cerr << "OpenGL error: " << err << std::endl;
         }
 
-        terrain.terrainShader.use();
-        terrain.terrainShader.setMat4("projection", projection);
-        terrain.terrainShader.setMat4("view", camera->getCameraView());
-        terrain.terrainShader.setMat4("model", glm::translate(glm::mat4(1.0), terrain.terposition));
-        terrain.terrainShader.setVec3("lightDir", lightPos);
-        terrain.terrainShader.setVec3("lightColor", glm::vec3(1.0f));
-        terrain.terrainShader.setVec3("viewPos", camera->position);
-        terrain.terrainShader.setMat4("model", glm::translate(glm::mat4(1.0), terrain.terposition));
-        terrain.terrainShader.setFloat("minHeight", terrain.minHeight);
-        terrain.terrainShader.setFloat("maxHeight", terrain.maxHeight);
+        terrain->terrainShader.use();
+        terrain->terrainShader.setMat4("projection", projection);
+        terrain->terrainShader.setMat4("view", camera->getCameraView());
+        terrain->terrainShader.setMat4("model", glm::translate(glm::mat4(1.0), terrain->terposition));
+        terrain->terrainShader.setVec3("lightDir", lightPos);
+        terrain->terrainShader.setVec3("lightColor", glm::vec3(1.0f));
+        terrain->terrainShader.setVec3("viewPos", camera->position);
+        terrain->terrainShader.setMat4("model", glm::translate(glm::mat4(1.0), terrain->terposition));
+        terrain->terrainShader.setFloat("minHeight", terrain->minHeight);
+        terrain->terrainShader.setFloat("maxHeight", terrain->maxHeight);
         if (down > 3.0) {
             updown = true;
         }
@@ -512,7 +551,7 @@ int main()
             updown = false;
         }
 
-        terrain.render();
+        terrain->render();
         treeShader.use();
         renderer.lightingShader(treeShader);
         treeShader.setInt("texture_diffuse1", 0);
@@ -560,43 +599,29 @@ int main()
     return 0;
 }
 
-void processInput(GLFWwindow* window, Terrain& terrain)
+void processInput(GLFWwindow* window, std::shared_ptr<Terrain> terrain)
 {
-
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-        pressed = true;
-        for (auto physobj : world.triggers) {
-            switch (physobj->model->id) {
-            case 10:
-                insideCart = !insideCart;
-                return;
-            }
-        }
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-        pressed = false;
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
-    else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    } else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         camera->processKeyboard(Camera::Movement::FORWARD, deltaTime, true, terrain);
-    else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    } else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         camera->processKeyboard(Camera::Movement::BACKWARD, deltaTime, true, terrain);
-    else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    } else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
         camera->processKeyboard(Camera::Movement::LEFT, deltaTime, true, terrain);
-    else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    } else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         camera->processKeyboard(Camera::Movement::RIGHT, deltaTime, true, terrain);
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE)
+    } else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE) {
         camera->processKeyboard(Camera::Movement::FORWARD, deltaTime, false, terrain);
-    else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE)
+    } else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE) {
         camera->processKeyboard(Camera::Movement::BACKWARD, deltaTime, false, terrain);
-    else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE)
-        camera->processKeyboard(Camera::Movement::LEFT, deltaTime, false, terrain);
-    else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE)
-        camera->processKeyboard(Camera::Movement::RIGHT, deltaTime, false, terrain);
+    } else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE) {
+        if (player.state != PlayerState::State::FLYING)
+            camera->processKeyboard(Camera::Movement::LEFT, deltaTime, false, terrain);
+    } else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE) {
+        if (player.state != PlayerState::State::FLYING)
+            camera->processKeyboard(Camera::Movement::RIGHT, deltaTime, false, terrain);
+    }
 }
 
 // ---------------------------------------------------------------------------------------------

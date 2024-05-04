@@ -32,7 +32,7 @@ public:
         return hold[currentCameraIndex];
     }
 
-    void processCamera(Camera::Movement move, float deltaTime, Terrain& terrain)
+    void processCamera(Camera::Movement move, float deltaTime, std::shared_ptr<Terrain> terrain)
     {
         hold[currentCameraIndex]->processKeyboard(move, deltaTime, true, terrain);
     }
