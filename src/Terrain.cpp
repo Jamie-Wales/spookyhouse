@@ -96,7 +96,7 @@ Terrain::Terrain(float scale, std::initializer_list<const std::string> textureFi
     glEnableVertexAttribArray(normal);
     glVertexAttribPointer(normal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(numfloats * sizeof(float)));
     numfloats += 3;
-    CreateFaultFormation(1000, 300, 1, 60);
+    CreateFaultFormation(1000, 300, 0, 120);
     normalMap = Array2D<glm::vec3>(terrainSize, terrainSize, glm::vec3(0.0f));
     populateBuffer();
 

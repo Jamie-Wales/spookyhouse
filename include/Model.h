@@ -22,6 +22,8 @@ public:
     float pitch;
     float yaw;
     float roll;
+    bool isInstanced = false;
+    int instanceAmount = 0;
 };
 class Model : public Drawable {
 public:
@@ -51,6 +53,56 @@ public:
 
     {
         loadModel(path);
+        boundingbox.translate(position);
+        boundingbox.rotate(pitch, yaw, roll);
+        boundingbox.updateAABB();
+    }
+
+    void initInstanced(size_t amount, std::vector<glm::mat4> trans)
+    {
+        unsigned int buffer;
+        glGenBuffers(1, &buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), trans.data(), GL_STATIC_DRAW);
+        for (unsigned int i = 0; i < this->meshes.size(); i++) {
+            unsigned int VAO = this->meshes[i].VAO;
+            glBindVertexArray(VAO);
+            glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+            glEnableVertexAttribArray(4);
+            glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+            glEnableVertexAttribArray(5);
+            glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+            glEnableVertexAttribArray(6);
+            glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+            glVertexAttribDivisor(3, 1);
+            glVertexAttribDivisor(4, 1);
+            glVertexAttribDivisor(5, 1);
+            glVertexAttribDivisor(6, 1);
+            glBindVertexArray(0);
+        }
+
+        isInstanced = true;
+        instanceAmount = amount;
+    }
+
+    void drawInstanced(Shader& shader)
+    {
+
+        if (!isInstanced) {
+            std::cerr << "Model is not instanced" << std::endl;
+            return;
+        }
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, this->textures_loaded[0].id);
+        for (unsigned int i = 0; i < this->meshes.size(); i++) {
+
+            shader.setInt("texture_diffuse1", 0);
+            glBindVertexArray(this->meshes[i].VAO);
+            glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(this->meshes[i].indices.size()),
+                GL_UNSIGNED_INT, 0, instanceAmount);
+            glBindVertexArray(0);
+        }
     }
     void setScale(float scale)
     {
@@ -91,7 +143,7 @@ private:
             return;
         }
         directory = path.substr(0, path.find_last_of('/'));
-        this->boundingbox = BoundingBox(scene->mMeshes[0]->mAABB, this->position, this->pitch, this->yaw);
+        this->boundingbox = BoundingBox(scene->mMeshes[0]->mAABB);
         processNode(scene->mRootNode, scene);
     }
 
@@ -151,7 +203,7 @@ private:
         textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
         std::vector<texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-        return Mesh(vertices, indices, textures, mesh->mAABB, this->pitch, this->yaw, this->position);
+        return Mesh(vertices, indices, textures, mesh->mAABB, this->pitch, this->yaw, this->roll, this->position);
     }
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet.

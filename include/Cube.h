@@ -10,9 +10,10 @@ class Cube {
 public:
     GLuint VAO, VBO, EBO;
 
-    explicit Cube(const BoundingBox& box)
+    explicit Cube(BoundingBox& box)
     {
-        std::vector<glm::vec3> vertices;
+
+        std::vector<glm::vec3> vertices = box.getCorners();
 
         std::vector<unsigned int> indices = {
             0, 1, 2, 2, 1, 3, // Front face
@@ -51,7 +52,7 @@ public:
     void draw()
     {
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
         glBindVertexArray(0);
     }
 };

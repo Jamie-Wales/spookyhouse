@@ -56,17 +56,15 @@ void Camera::processMouseMovement(float x, float y)
     y *= options.mouseSensitivity;
     options.yaw += x;
     options.pitch += y;
-
     if (options.yaw > 360.0f) {
         options.yaw = 0.0f;
     } else if (options.yaw < -360.0f) {
         options.yaw = 0.0f;
     }
-
-    if (options.pitch > 50.0f)
-        options.pitch = 50.0f;
-    if (options.pitch < -50.0f)
-        options.pitch = -50.0f;
+    if (options.pitch > 90.0f)
+        options.pitch = 90.0f;
+    if (options.pitch < -90.0f)
+        options.pitch = -90.0f;
     update();
 }
 

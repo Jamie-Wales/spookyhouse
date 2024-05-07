@@ -28,9 +28,8 @@ public:
         auto nfront = glm::normalize(front);
 
         nposition = nposition + front;
-
-        boundingBox.min = nposition - 5.0f;
-        boundingBox.max = nposition + 5.0f;
+        boundingBox.min = nposition - 20.0f;
+        boundingBox.max = nposition + 20.0f;
     }
 
     glm::mat4 getCameraView();
@@ -111,14 +110,14 @@ public:
         worldUp = up;
         right = glm::normalize(glm::cross(front, worldUp));
         options.pitch = 0.0;
-        options.yaw = 30.0;
+        options.yaw = 90.0;
         options.mouseSensitivity = 0.1;
         options.zoom = 45.0f;
         options.accelerationRate = 1.0f;
         options.velocity = 0.0f;
         boundingBox = BoundingBox();
-        boundingBox.min = position - 5.0f;
-        boundingBox.max = position + 5.0f;
+        boundingBox.min = position - 20.0f;
+        boundingBox.max = position + 20.0f;
         boundingBox.pitch = options.pitch;
         boundingBox.yaw = options.yaw;
         boundingBox.roll = 0;
@@ -135,12 +134,12 @@ public:
         worldUp = up;
         right = glm::normalize(glm::cross(front, worldUp));
         options.pitch = 0.0;
-        options.yaw = 45.0f;
+        options.yaw = 90.0f;
         options.mouseSensitivity = 0.1;
         options.zoom = 45.0f;
         boundingBox = BoundingBox();
-        boundingBox.min = position - 5.0f;
-        boundingBox.max = position + 5.0f;
+        boundingBox.min = position - 20.0f;
+        boundingBox.max = position + 20.0f;
         update();
     }
 

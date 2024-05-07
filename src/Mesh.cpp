@@ -4,14 +4,17 @@
 
 #include "Mesh.h"
 
-Mesh::Mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std::vector<texture> textures, aiAABB boundingbox, float pitch, float yaw, glm::vec3 position)
+Mesh::Mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std::vector<texture> textures, aiAABB boundingbox, float pitch, float yaw, float roll, glm::vec3 position)
     : vertices { vertices }
     , indices { indices }
     , textures { textures }
 
 {
-    this->boundingbox = BoundingBox{boundingbox, position, pitch, yaw};
     setUpMesh();
+    this->boundingbox = BoundingBox(boundingbox);
+    this->boundingbox.translate(position);
+    this->boundingbox.rotate(pitch, yaw, roll);
+    this->boundingbox.updateAABB();
 }
 
 void Mesh::draw(Shader& shader)

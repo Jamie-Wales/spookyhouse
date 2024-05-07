@@ -30,7 +30,7 @@ vec3 CalcLighting(vec3 normal, vec3 lightDir, vec3 viewDir);
 void main() {
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 lightDirection = normalize(-lightDir);
+    vec3 lightDirection = normalize( lightDir);
     vec4 TexColor = CalcTexColor(); 
     vec3 lighting = CalcLighting(norm, lightDirection, viewDir);
 

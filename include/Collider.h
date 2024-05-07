@@ -71,6 +71,11 @@ public:
         sweepAndPrune.addCamera(camera);
     }
 
+    void removeObject(std::shared_ptr<Model>& model)
+    {
+        sweepAndPrune.removeModel(model);
+    }
+
     void checkCollision(const std::shared_ptr<CollisionPacket>& colPacket, Sphere& secondMesh)
     {
         Sphere& collpacketSphere = colPacket->sphere;
@@ -81,11 +86,11 @@ public:
     {
         sweepAndPrune.UpdateObject(model);
         auto col = sweepAndPrune.getTrueCollisions();
-        sweepAndPrune.printTrueCollisions(col);
         return col;
     }
 
-    std::vector<BroadCollision> broadCollide(std::shared_ptr<Camera> camera) {
+    std::vector<BroadCollision> broadCollide(std::shared_ptr<Camera> camera)
+    {
         sweepAndPrune.updateObject(camera);
         auto col = sweepAndPrune.getTrueCollisions();
         sweepAndPrune.printTrueCollisions(col);
@@ -107,8 +112,8 @@ public:
         std::shared_ptr<std::unordered_map<int, std::shared_ptr<physics::Object>>> objectMap, float dt)
     {
         for (auto& pair : broadphasePairs) {
-            auto sphereA = boundingBoxToSphere(pair.firstMesh->boundingbox);
-            auto sphereB = boundingBoxToSphere(pair.secondMesh->boundingbox);
+            auto sphereA = pair.firstMesh == nullptr ? boundingBoxToSphere(pair.camera->position) : boundingBoxToSphere(pair.firstMesh->boundingbox);
+            auto sphereB = pair.secondMesh== nullptr ? boundingBoxToSphere(pair.camera->position) : boundingBoxToSphere(pair.secondMesh->boundingbox);
             auto colPacketA = std::make_shared<CollisionPacket>();
             auto colPacketB = std::make_shared<CollisionPacket>();
             colPacketA->sphere = sphereA;
@@ -136,9 +141,6 @@ public:
                 glm::vec3 correction = (penetrationDepth * collisionNormal) * 0.25f;
                 colPacketA->obj->position += correction;
                 colPacketB->obj->position -= correction;
-
-                colPacketA->obj->model->boundingbox.updateDifference(colPacketA->obj->position);
-                colPacketB->obj->model->boundingbox.updateDifference(colPacketB->obj->position);
             }
         }
     }

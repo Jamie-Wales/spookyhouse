@@ -3,6 +3,7 @@
 #include "Animator.h"
 #include "Camera.h"
 #include "CameraHolder.h"
+#include "Cube.h"
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include "Instance.h"
@@ -17,7 +18,7 @@
 #include <__errc>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp> // Include for quaternion operations
+#include <glm/gtc/quaternion.hpp>
 #include <iostream>
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -38,20 +39,15 @@ void glfwSetUpFunctions()
 
     if (!glfwInit())
         exit(1);
-
     const char* glsl_version = "#version 330";
-
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    // Create window with graphics context
     GLFWwindow* window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
     if (window == NULL)
         exit(1);
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
-
     if (glewInit() != GLEW_OK) {
         std::cerr << "Failed to initialize OpenGL loader!" << std::endl;
         exit(1);
@@ -98,6 +94,7 @@ float rotation = 0.0f;
 bool opening;
 bool cameraChange = false;
 bool debug = false;
+
 bool detectCollision(aiAABB boundingbox);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -172,12 +169,14 @@ void bindLightCube(unsigned int& VAO, unsigned int& VBO)
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
+
 void processInput(GLFWwindow* window, std::shared_ptr<Terrain> terrain);
+
 auto height = 2000;
 CameraHolder cameraHolder;
 std::shared_ptr<Camera> camera;
 auto width = 3000;
-int amount = 3000;
+int amount = 5000;
 auto projection = glm::perspective(glm::radians(45.0f),
     (float)width / (float)height, 0.01f, 800.0f);
 float deltaTime = 0;
@@ -190,8 +189,14 @@ bool pressed = false;
 bool insideCart = false;
 physics::PhysicsWorld world;
 PlayerState player;
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+    if (key == GLFW_KEY_R && action == GLFW_RELEASE) {
+        player.state = PlayerState::State::DUNGEON,
+        player.changed = true;
+        return;
+    }
     if (key == GLFW_KEY_C && action == GLFW_RELEASE) {
         cameraHolder.incrementCurrentCamera();
         switch (player.state) {
@@ -212,20 +217,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_E && action == GLFW_RELEASE) {
         for (auto physobj : world.triggers) {
             switch (physobj->model->id) {
-            case 10:
+            case 1:
+            case 2:
+                player.state = PlayerState::State::GUN;
+                player.changed = true;
+                return;
+            case 3:
                 insideCart = !insideCart;
                 return;
-            }
-        }
-    }
-
-    if (key == GLFW_KEY_E && action == GLFW_RELEASE) {
-        for (auto triggers : world.triggers) {
-            switch (triggers->model->id) {
-            case 3:
-                std::cout << "trigger";
-                insideCart = !insideCart;
-                world.triggers.clear();
+            default:
                 return;
             }
         }
@@ -239,29 +239,37 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         debug = !debug;
     }
     if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-        if (player.state != PlayerState::State::FLYING)
+        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN)
             player.state = PlayerState::State::RUNNING;
     } else if (key == GLFW_KEY_W && action == GLFW_RELEASE) {
-        if (player.state != PlayerState::State::FLYING)
+        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN)
             player.state = PlayerState::State::IDLE;
     } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-        if (player.state != PlayerState::State::FLYING)
+        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN)
             player.state = PlayerState::State::RUNNING;
     } else if (key == GLFW_KEY_S && action == GLFW_RELEASE) {
-        if (player.state != PlayerState::State::FLYING)
+        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN)
             player.state = PlayerState::State::IDLE;
     } else if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-        if (player.state != PlayerState::State::FLYING)
+        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN)
             player.state = PlayerState::State::RUNNING;
     } else if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
-        if (player.state != PlayerState::State::FLYING)
+        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN)
             player.state = PlayerState::State::IDLE;
     } else if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-        if (player.state != PlayerState::State::FLYING)
+        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN)
             player.state = PlayerState::State::RUNNING;
     } else if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
-        if (player.state != PlayerState::State::FLYING)
+        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN)
             player.state = PlayerState::State::IDLE;
+    }
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && player.state == PlayerState::State::GUN) {
+        player.shoot();
+        world.fireBullet(camera->position, camera->front, 10.0f);
     }
 }
 
@@ -280,6 +288,7 @@ int main()
     glfwSwapInterval(1);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetKeyCallback(window, key_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     if (glewInit() != GLEW_OK) {
@@ -296,63 +305,90 @@ int main()
     glEnable(GL_DEPTH_TEST);
     Camera fly = Camera { 606 };
     Camera fps = Camera { 101, true };
-    cameraHolder.addCamera({ std::make_shared<Camera>(fly), std::make_shared<Camera>(fps) });
+    cameraHolder.addCamera({ std::make_shared<Camera>(fps), std::make_shared<Camera>(fly) });
     camera = cameraHolder.getCam();
     CubicSpline cSpline = CubicSpline();
 
     Shader shader("../src/modelLoading.vert.glsl", "../src/modelLoading.frag.glsl");
     Shader treeShader("../src/tree.vert.glsl", "../src/tree.frag.glsl");
     Shader basic("../src/basic.vert.glsl", "../src/basic.frag.glsl");
-
-    auto gun = std::make_shared<Model>("../assets/player/pistolbut.obj", glm::mat4(1.0f), glm::vec3(0.0, 0.0, 0.0), 1, 0.0, 0.0, 0.0);
-    auto scope = std::make_shared<Model>("../assets/player/pistolscope.obj", glm::mat4(1.0f), glm::vec3(0.0, 0.0, 0.0), 2, 0.0, 0.0, 0.0);
-    auto cart = std::make_shared<Model>("../assets/cart/cart.obj", glm::mat4(1.0f), glm::vec3(309, 3.0, 131.35), 3, 0.0, 80.0, 0.0);
-    auto tree = std::make_shared<Model>("../assets/tree/spookyTree.obj", glm::mat4(1.0f), glm::vec3(0.0), 4, 0.0, 9166, 0.0, 0.0);
-    auto left = std::make_shared<Model>("../assets/player/nleft.obj", glm::mat4(1.0f), glm::vec3(0.0), 5, 0.0, 10.0, 0.0);
-    auto right = std::make_shared<Model>("../assets/player/nright.obj", glm::mat4(1.0f), glm::vec3(0.0), 6, 0.0, 10.0, 0.0);
-
-    std::vector<glm::mat4> translations(amount);
+    auto treeOne = std::make_shared<Model>("../assets/tree/treeOne.obj", glm::mat4(1.0f), glm::vec3(0.0), 202, 0.0,
+        9166, 0.0, 0.0);
+    auto treeTwo = std::make_shared<Model>("../assets/tree/treeTwo.obj", glm::mat4(1.0f), glm::vec3(0.0), 203, 0.0,
+        9166, 0.0, 0.0);
+    auto treeThree = std::make_shared<Model>("../assets/tree/treeThree.obj", glm::mat4(1.0f), glm::vec3(0.0), 204, 0.0,
+        9166, 0.0, 0.0);
+    auto treeFour = std::make_shared<Model>("../assets/tree/treeFour.obj", glm::mat4(1.0f), glm::vec3(0.0), 205, 0.0,
+        9166, 0.0, 0.0);
+    auto treeFive = std::make_shared<Model>("../assets/tree/treeFive.obj", glm::mat4(1.0f), glm::vec3(0.0), 206, 0.0,
+        9166, 0.0, 0.0);
+    auto treeSix = std::make_shared<Model>("../assets/tree/treeSix.obj", glm::mat4(1.0f), glm::vec3(0.0), 207, 0.0,
+        9166, 0.0, 0.0);
+    auto left = std::make_shared<Model>("../assets/player/nleft.obj", glm::mat4(1.0f), glm::vec3(0.0), 5, 0.0, 10.0,
+        0.0);
+    auto right = std::make_shared<Model>("../assets/player/nright.obj", glm::mat4(1.0f), glm::vec3(0.0), 6, 0.0, 10.0,
+        0.0);
+    // auto hallway = std::make_shared<Model>("../assets/dungeon/dungeon.obj", glm::mat4(1.0), glm::vec3(0.0), 7, 0.0, 0.0, 0.0);
+    std::vector<std::vector<glm::mat4>> translations { 5 };
     world = physics::PhysicsWorld();
     Terrain ter { 1, { "../assets/Water texture.png", "../assets/rock 01.jpg", "../assets/rock02 texture.jpg", "../assets/tilable img 0044 verydark.png" }, 5.0f };
     terrain = std::make_shared<Terrain>(ter);
+
+    auto gun = std::make_shared<Model>("../assets/player/pistolbut.obj", glm::mat4(1.0f),
+        glm::vec3(375, -terrain->GetHeightInterpolated(375, 109) + 1.0f, 109), 1, 0.0,
+        0.0, 0.0);
+    auto scope = std::make_shared<Model>("../assets/player/pistolscope.obj", glm::mat4(1.0f),
+        glm::vec3(375, -terrain->GetHeightInterpolated(375, 109) + 1.0f, 109), 2, 0.0,
+        0.0, 0.0);
     auto house = std::make_shared<Model>("../assets/house/hh.obj", glm::mat4(1.0f),
         glm::vec3(300.0, (-terrain->GetHeightInterpolated(300.0, 234.0) + 28.0f), 234),
-        60, 92, 90.0, 0.0);
-    initInstancedObject(amount, tree, translations, house->position, 560.0f, *terrain);
+        60, 90, 90, 0.0);
+    initMultiTree(amount, 6, 250, 560.0, translations, house->position, *terrain);
     auto track = std::make_shared<Model>("../assets/track/track.obj", glm::mat4(1.0f),
         glm::vec3(305.2f, house->position.y - 13.0, 177.5f), 111, 3.0, 82.5, -3.0);
+    auto cart = std::make_shared<Model>("../assets/cart/cart.obj", glm::mat4(1.0f),
+        glm::vec3(206.98, track->position.y + 10.0f, 127), 3, 0.0, 80.0, 0.0);
 
+    treeOne->initInstanced(translations[0].size(), translations[0]);
+    treeTwo->initInstanced(translations[1].size(), translations[1]);
+    treeThree->initInstanced(translations[2].size(), translations[2]);
+    treeFour->initInstanced(translations[3].size(), translations[3]);
+    treeFive->initInstanced(translations[4].size(), translations[4]);
+    treeSix->initInstanced(translations[5].size(), translations[5]);
     world.addCamera(camera, false, false);
-    world.addModel(cart, false, true);
-
-    glm::vec3 s1(206.98, track->position.y, 127.12);
-    glm::vec3 s2 = glm::vec3(230.74, track->position.y + 4.0, 125.84); // Added in the gradual rise between s1 and s2
-    glm::vec3 s3(249.50, track->position.y + 6.0, 124.56);
-    glm::vec3 s4 = glm::vec3(270.93, track->position.y + 9.5, 126.205); // Enhances the gentle rise between s2 and s3
-    glm::vec3 s5(292.36, track->position.y + 12.2, 127.85);
-    glm::vec3 s6 = glm::vec3(302.73, track->position.y + 12.6, 129.285); // Smooths the transition before reaching s4
-    glm::vec3 s7(313.10, track->position.y + 15.1, 130.72);
-    glm::vec3 s8 = glm::vec3(337.80, track->position.y + 5, 134.61); // Midway through the drop from s4 to s5
-    glm::vec3 s9(362.50, track->position.y + 2, 138.50);
-    glm::vec3 s10 = glm::vec3(383.05, track->position.y - 2, 145.75); // Deepening the curve before leveling at s6
-    glm::vec3 s11(403.6, track->position.y - 1.5, 153.0);
-    glm::vec3 s12 = glm::vec3(414.02, track->position.y - 2.5, 159.2); // Approach the peak near s7
+    world.addModel(cart, true, true, 0);
+    world.addModel(gun, false, true, 0);
+    world.addModel(scope, false, true, 0);
+    world.addModel(house, false, false, 0);
+    Cube cube = Cube(gun->boundingbox);
+    glm::vec3 s1(207.5, track->position.y, 131.7);
+    glm::vec3 s2 = glm::vec3(243.39, track->position.y + 4.2, 130.45); // Added in the gradual rise between s1 and s2
+    glm::vec3 s3(269.50, track->position.y + 8.7, 130.56);
+    glm::vec3 s4 = glm::vec3(286.3, track->position.y + 11.2, 131.205); // Enhances the gentle rise between s2 and s3
+    glm::vec3 s5(300.36, track->position.y + 12.9, 132.09);
+    glm::vec3 s6 = glm::vec3(314.73, track->position.y + 12.6, 134.285); // Smooths the transition before reaching s4
+    glm::vec3 s7(322.30, track->position.y + 12.2, 135.42);
+    glm::vec3 s8 = glm::vec3(339.20, track->position.y + 7.3, 137.61); // Midway through the drop from s4 to s5
+    glm::vec3 s9(351.31, track->position.y + 6.2, 138.90);
+    glm::vec3 s10 = glm::vec3(383.05, track->position.y - 3.2, 145.75); // Deepening the curve before leveling at s6
+    glm::vec3 s11(403.6, track->position.y - 2.7, 153.0);
+    glm::vec3 s12 = glm::vec3(414.02, track->position.y - 3.5, 159.2); // Approach the peak near s7
     glm::vec3 s13(420.60, track->position.y - 1.5, 163.4);
-    glm::vec3 s14 = glm::vec3(428.02, track->position.y + 2, 177.8); // Just before the steep drop at s8
+    glm::vec3 s14 = glm::vec3(428.02, track->position.y + 1.5, 177.8); // Just before the steep drop at s8
     glm::vec3 s15(427.44, track->position.y + 3, 196.20);
-    glm::vec3 s101 = glm::vec3(422.15, track->position.y + 2, 214.0);
-    glm::vec3 s16 = glm::vec3(406.02, track->position.y, 233.95); // On the descent towards s9
-    glm::vec3 s17(370.64, track->position.y, 235.70);
-    glm::vec3 s18 = glm::vec3(350.82, track->position.y, 234.85); // Transition between s9 and s10
-    glm::vec3 s19(331.0, track->position.y, 234.0);
-    glm::vec3 s20 = glm::vec3(293.55, track->position.y, 229.15);
-    glm::vec3 s21(256.10, track->position.y, 224.3);
+    glm::vec3 s101 = glm::vec3(422.15, track->position.y + 1.5, 214.0);
+    glm::vec3 s16 = glm::vec3(404.02, track->position.y, 236.95); // On the descent towards s9
+    glm::vec3 s17(370.64, track->position.y - 1, 231.70);
+    glm::vec3 s18 = glm::vec3(350.82, track->position.y - 1, 230.85); // Transition between s9 and s10
+    glm::vec3 s19(331.0, track->position.y - 1, 230.0);
+    glm::vec3 s20 = glm::vec3(299.55, track->position.y, 228.15);
+    glm::vec3 s21(256.10, track->position.y, 222.3);
     glm::vec3 s22 = glm::vec3(226.205, track->position.y, 215.575);
-    glm::vec3 s23(196.31, track->position.y, 206.85);
-    glm::vec3 s24 = glm::vec3(175.75, track->position.y + 8, 185.785);
-    glm::vec3 s25(176.19, track->position.y + 13.5, 152.72);
-    glm::vec3 s26(185.66, track->position.y + 3.5, 136.12);
-    glm::vec3 s27(206.98, track->position.y, 127.12);
+    glm::vec3 s23(181.02, track->position.y + 5.5, 198.14);
+    glm::vec3 s24 = glm::vec3(174.75, track->position.y + 18.0, 168.785);
+    glm::vec3 s25(180.0, track->position.y + 13.0, 149.72);
+    glm::vec3 s26(190.0, track->position.y + 3.3, 138.7);
+    glm::vec3 s27(207.5, track->position.y, 131.7);
 
     std::vector<glm::vec3> splinearray {
         s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s101, s16, s17, s18, s19, s20, s21, s22,
@@ -372,16 +408,11 @@ int main()
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     Renderer renderer { projection, camera, *terrain };
-    renderer.enqueue(shader, { track, house, cart });
-    player = { left, right, gun };
+    renderer.enqueue(shader, { track, house, cart, left, right, gun, scope });
+    renderer.enqueue(treeShader, { treeOne, treeTwo, treeThree, treeFour, treeFive, treeSix });
+    player = { left, right, gun, scope };
     glm::vec3& lightPos = renderer.lightPos;
-
-    //    for (int i = 0; i < cSpline.m_points.size(); i++) {
-    //        auto pipe = std::make_shared<Model>("../assets/player/nleft.obj", glm::mat4(1.0f), splinearray[i], 4, 0.0, 0.0, 0.0);
-    //        renderer.enqueue(shader, { pipe });
-    //    }
     auto lastFrameTime = static_cast<float>(glfwGetTime());
-    auto gunanim = initGunHouseAnimation(gun);
     bool xChange = false;
     bool yChange = false;
     bool zChange = false;
@@ -390,6 +421,10 @@ int main()
     int controlMode = 0;
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
+        if (player.isShooting) {
+            camera->update();
+            player.isShooting = false;
+        }
         camera = cameraHolder.getCam();
         renderer.cam = camera;
         if (player.state == PlayerState::State::FLYING && player.changed) {
@@ -402,6 +437,16 @@ int main()
             renderer.addModel(shader.ID, left);
             renderer.addModel(shader.ID, right);
             player.changed = false;
+        } else if (player.state == PlayerState::State::DUNGEON && player.changed) {
+            // renderer.clear();
+            // renderer.enqueue(shader, { hallway });
+            // renderer.lightPos = glm::vec3(0.0, 0.0, 0.0);
+            // camera->position = glm::vec3(0.0, 0.0, 0.0);
+            // player.changed = false;
+        } else if (player.state == PlayerState::State::GUN && player.changed) {
+            renderer.removeModel(shader.ID, left);
+            renderer.removeModel(shader.ID, right);
+            player.changed = false;
         }
         float currentFrameTime = static_cast<float>(glfwGetTime());
         deltaTime = currentFrameTime - lastFrameTime;
@@ -412,16 +457,19 @@ int main()
             ImGui::NewFrame();
             ImGui::Checkbox("Position or Pitch + Yaw", &position);
             ImGui::Text("FPS %f", 60 / deltaTime);
-            ImGui::Text("Camera position, X: %f Y: %f Z: %f", camera->position.x, camera->position.y, camera->position.z);
+            ImGui::Text("Camera position, X: %f Y:otherDungeon %f Z: %f", camera->position.x, camera->position.y,
+                camera->position.z);
             ImGui::Text("Camera bb min, X: %f Y: %f Z: %f", camera->boundingBox.min.x, camera->boundingBox.min.y,
                 camera->boundingBox.min.z);
             ImGui::Text("Camera bb max, X: %f Y: %f Z: %f", camera->boundingBox.max.x, camera->boundingBox.max.y,
                 camera->boundingBox.max.z);
+            for (auto& mesh : cart->meshes) {
+                ImGui::Text("house bb min, X: %f Y: %f Z: %f", mesh.boundingbox.min.x, mesh.boundingbox.min.y,
+                    mesh.boundingbox.min.z);
+                ImGui::Text("house bb max, X: %f Y: %f Z: %f", mesh.boundingbox.max.x, mesh.boundingbox.max.y,
+                    mesh.boundingbox.max.z);
+            }
 
-            ImGui::Text("house bb min, X: %f Y: %f Z: %f", cart->boundingbox.min.x, cart->boundingbox.min.y,
-                house->boundingbox.min.z);
-            ImGui::Text("house bb max, X: %f Y: %f Z: %f", cart->boundingbox.max.x, cart->boundingbox.max.y,
-                house->boundingbox.max.z);
             if (position) {
                 ImGui::Begin("Model Position Controls");
                 ImGui::Text("Adjust the position of models:");
@@ -430,13 +478,16 @@ int main()
                 ImGui::Checkbox("Z Change", &zChange);
                 auto positionControl = [&](const char* label, Model& model) {
                     if (xChange) {
-                        ImGui::DragFloat((std::string(label) + " X").c_str(), &model.position.x, 0.1f, 0.0f, 0.0f, "%.3f");
+                        ImGui::DragFloat((std::string(label) + " X").c_str(), &model.position.x, 0.1f, 0.0f, 0.0f,
+                            "%.3f");
                     }
                     if (yChange) {
-                        ImGui::DragFloat((std::string(label) + " Y").c_str(), &model.position.y, 0.1f, 0.0f, 0.0f, "%.3f");
+                        ImGui::DragFloat((std::string(label) + " Y").c_str(), &model.position.y, 0.1f, 0.0f, 0.0f,
+                            "%.3f");
                     }
                     if (zChange) {
-                        ImGui::DragFloat((std::string(label) + " Z").c_str(), &model.position.z, 0.1f, 0.0f, 0.0f, "%.3f");
+                        ImGui::DragFloat((std::string(label) + " Z").c_str(), &model.position.z, 0.1f, 0.0f, 0.0f,
+                            "%.3f");
                     }
                 };
 
@@ -452,8 +503,9 @@ int main()
                     }
                 };
                 positionControl("Cart", *cart);
+                positionControl("Gun", *gun);
+                positionControl("Cart", *scope);
                 positionControl("Track", *track);
-                positionControl("Tree", *tree);
                 positionControl("House", *house);
                 positionControl("Left", *left);
                 positionControl("Right", *right);
@@ -472,7 +524,8 @@ int main()
                 auto pitchControl = [&](const char* label, Model& model) {
                     switch (controlMode) {
                     case 0:
-                        ImGui::DragFloat((std::string(label) + " Pitch").c_str(), &model.pitch, 0.1f, -360.0f, 360.0f,
+                        ImGui::DragFloat((std::string(label) + " Pitch").c_str(), &model.pitch, 0.1f, -360.0f,
+                            360.0f,
                             "%.3f");
                         break;
                     case 1:
@@ -488,12 +541,12 @@ int main()
 
                 pitchControl("Cart", *cart);
                 pitchControl("Track", *track);
-                pitchControl("Tree", *tree);
                 pitchControl("House", *house);
                 pitchControl("Left", *left);
                 pitchControl("Right", *right);
                 pitchControl("Gun", *gun);
                 pitchControl("scope", *scope);
+
                 ImGui::End();
                 ImGui::Render();
             }
@@ -509,77 +562,70 @@ int main()
             float normalizedTime = (currentTime / totalDuration) * (cSpline.m_points.size() - 1);
             auto newPos = cSpline.ConstVelocitySplineAtTime(currentTime * 60);
             auto pitch = calculateYawPitch(cart->position, newPos);
-            auto pitchDif = pitch.pitch - cart->pitch;
+            auto pitchDif = cart->pitch - pitch.pitch;
             auto yawDif = cart->yaw - pitch.yaw;
             cart->position = newPos;
             cart->pitch = pitch.pitch;
             cart->yaw = pitch.yaw;
-            world.updatePosition(10, newPos);
+            world.updatePosition(3, newPos);
             camera->position = cart->position;
             camera->options.yaw += yawDif;
             camera->options.pitch += pitchDif;
+            if (camera->options.pitch > 89.0f) {
+                camera->options.pitch = 89.0f;
+            } else if (camera->options.pitch < -89.0f) {
+                camera->options.pitch = -89.0f;
+            }
             camera->position.y += 5.0f;
+            camera->position.x -= 0.5f;
             camera->update();
         }
         GLenum err;
         while ((err = glGetError()) != GL_NO_ERROR) {
             std::cerr << "OpenGL error: " << err << std::endl;
         }
-        terrain->terrainShader.use();
-        terrain->terrainShader.setMat4("projection", projection);
-        terrain->terrainShader.setMat4("view", camera->getCameraView());
-        terrain->terrainShader.setMat4("model", glm::translate(glm::mat4(1.0), terrain->terposition));
-        terrain->terrainShader.setVec3("lightDir", lightPos);
-        terrain->terrainShader.setVec3("lightColor", glm::vec3(1.0f));
-        terrain->terrainShader.setVec3("viewPos", camera->position);
-        terrain->terrainShader.setMat4("model", glm::translate(glm::mat4(1.0), terrain->terposition));
-        terrain->terrainShader.setFloat("minHeight", terrain->minHeight);
-        terrain->terrainShader.setFloat("maxHeight", terrain->maxHeight);
+        if (player.state != PlayerState::State::DUNGEON) {
+            terrain->terrainShader.use();
+            terrain->terrainShader.setMat4("projection", projection);
+            terrain->terrainShader.setMat4("view", camera->getCameraView());
+            terrain->terrainShader.setMat4("model", glm::translate(glm::mat4(1.0), terrain->terposition));
+            terrain->terrainShader.setVec3("lightDir", lightPos);
+            terrain->terrainShader.setVec3("lightColor", glm::vec3(1.0f));
+            terrain->terrainShader.setVec3("viewPos", camera->position);
+            terrain->terrainShader.setMat4("model", glm::translate(glm::mat4(1.0), terrain->terposition));
+            terrain->terrainShader.setFloat("minHeight", terrain->minHeight);
+            terrain->terrainShader.setFloat("maxHeight", terrain->maxHeight);
+            terrain->render();
+        }
         if (down > 3.0) {
             updown = true;
         }
         if (down < 0) {
             updown = false;
         }
-
-        terrain->render();
-        treeShader.use();
+        /*treeShader.use();
         renderer.lightingShader(treeShader);
         treeShader.setInt("texture_diffuse1", 0);
         treeShader.setFloat("shininess", 3);
         treeShader.setMat4("projection", projection);
-        treeShader.setMat4("view", camera->getCameraView());
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, tree->textures_loaded[0].id);
-        for (unsigned int i = 0; i < tree->meshes.size(); i++) {
-            glBindVertexArray(tree->meshes[i].VAO);
-            glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(tree->meshes[i].indices.size()),
-                GL_UNSIGNED_INT, 0, amount);
-            glBindVertexArray(0);
-        }
-
+        treeShader.setMat4("view", camera->getCameraView());*
+*/
         basic.use();
         basic.setMat4("projection", projection);
         basic.setMat4("view", camera->getCameraView());
-        basic.setMat4("model", glm::mat4(1.0f));
-        basic.setVec4("color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        basic.setMat4("model", glm::mat4(1.0));
+        basic.setVec4("color", glm::vec4(1.0, 1.0, 1.0, 1.0));
         glBindVertexArray(splineVAO);
         glDrawArrays(GL_LINE_STRIP, 0, sizeof(splinearray));
         glBindVertexArray(0);
+        //       cube2.draw();
+
         processInput(window, terrain);
         if (debug) {
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
         glfwSwapBuffers(window);
         player.tick(deltaTime, camera);
-        gun->position.x = camera->position.x + camera->front.x * 2.0f + -camera->right.x * 1.0f;
-        gun->position.z = camera->position.z + camera->front.z * 2.0f + -camera->right.x * 1.0f;
-        gun->position.y += camera->position.y - gun->position.y - 0.8f;
-        gunanim->update(deltaTime);
-
-        scope->position.x = camera->position.x + camera->front.x * 2.0f + -camera->right.x * 1.0f;
-        scope->position.z = camera->position.z + camera->front.z * 2.0f + -camera->right.x * 1.0f;
-        scope->position.y += camera->position.y - scope->position.y - 0.8f;
     }
 
     ImGui_ImplOpenGL3_Shutdown();
@@ -607,11 +653,9 @@ void processInput(GLFWwindow* window, std::shared_ptr<Terrain> terrain)
     } else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE) {
         camera->processKeyboard(Camera::Movement::BACKWARD, deltaTime, false, terrain);
     } else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE) {
-        if (player.state != PlayerState::State::FLYING)
-            camera->processKeyboard(Camera::Movement::LEFT, deltaTime, false, terrain);
+        camera->processKeyboard(Camera::Movement::LEFT, deltaTime, false, terrain);
     } else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE) {
-        if (player.state != PlayerState::State::FLYING)
-            camera->processKeyboard(Camera::Movement::RIGHT, deltaTime, false, terrain);
+        camera->processKeyboard(Camera::Movement::RIGHT, deltaTime, false, terrain);
     }
 }
 
@@ -619,8 +663,8 @@ void processInput(GLFWwindow* window, std::shared_ptr<Terrain> terrain)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
-    projection = glm::perspective(glm::radians(45.0f),
-        (float)width / (float)height, 0.001f, 200.0f);
+    auto projection = glm::perspective(glm::radians(45.0f),
+        (float)width / (float)height, 0.01f, 800.0f);
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)

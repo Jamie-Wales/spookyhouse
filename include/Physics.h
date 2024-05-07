@@ -4,7 +4,6 @@
 #include "Collider.h"
 #include "Model.h"
 #include "Terrain.h"
-#include <functional>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <memory>
@@ -16,6 +15,18 @@
 #define ZERO_THRESHOLD 0.000000000000000000000000000001
 namespace physics {
 class PhysicsWorld {
+    struct Bullet {
+        glm::vec3 position;
+        glm::vec3 velocity;
+        float lifetime;
+        Bullet(glm::vec3 startPos, glm::vec3 vel, float life = 10.0f)
+            : position(startPos)
+            , velocity(vel)
+            , lifetime(life)
+        {
+        }
+    };
+
 private:
     std::unordered_map<int, std::shared_ptr<Object>> objects = {};
     glm::vec3 gravity = glm::vec3(0, GRAVITY, 0);
@@ -25,8 +36,18 @@ public:
 
     Collider collider;
     std::vector<std::shared_ptr<physics::Object>> triggers = {};
+    std::vector<std::shared_ptr<Bullet>> bullets = {};
 
-    void addModel(std::shared_ptr<Model>& model, bool isDynamic, bool isTrigger, bool isCamera = false)
+    void fireBullet(glm::vec3 position, glm::vec3 direction, float speed = 10.0f)
+    {
+        std::cout << "position" << position.x << " " << position.y << " " << position.z << std::endl;
+        std::cout << "direction" << direction.x << " " << direction.y << " " << direction.z << std::endl;
+        glm::vec3 velocity = glm::normalize(direction) * speed;
+        std::cout << "velocity" << velocity.x << " " << velocity.y << " " << velocity.z << std::endl;
+        std::shared_ptr<Bullet> bullet = std::make_shared<Bullet>(position, velocity);
+        bullets.push_back(bullet);
+    }
+    void addModel(std::shared_ptr<Model>& model, bool isDynamic, bool isTrigger, float gravity = GRAVITY)
     {
         Object object;
         object.position = glm::vec3(model->position);
@@ -35,14 +56,15 @@ public:
         object.mass = 1.0;
         object.model = model;
         object.camera = nullptr;
+        object.gravity = -9.8f;
         object.isDynamic = isDynamic;
         object.isTrigger = isTrigger;
-        object.isCamera = isCamera;
+        object.isCamera = false;
         objects[model->id] = std::make_shared<Object>(object);
         collider.addModel(model);
     }
 
-    void addCamera(std::shared_ptr<Camera>& camera, bool isDynamic, bool isTrigger, bool isCamera = true)
+    void addCamera(std::shared_ptr<Camera>& camera, bool isDynamic, bool isTrigger)
     {
         Object object;
         object.position = glm::vec3(camera->position);
@@ -51,8 +73,10 @@ public:
         object.mass = 1.0;
         object.model = nullptr;
         object.camera = camera;
+        object.gravity = 0.0f;
         object.isTrigger = isTrigger;
-        object.isCamera = isCamera;
+        object.isDynamic = isDynamic;
+        object.isCamera = true;
         objects[camera->id] = std::make_shared<Object>(object);
         collider.addCamera(camera);
     }
@@ -87,6 +111,32 @@ public:
 
     void tick(float dt, Terrain& terrain)
     {
+        triggers.clear();
+        std::vector<std::shared_ptr<Bullet>> toRemove = {};
+        auto it = bullets.begin();
+        while (it != bullets.end()) {
+            auto& bullet = *it;
+            glm::vec3 nextPosition = bullet->position + (bullet->velocity * dt);
+            std::cout << "NEWPOS" << nextPosition.x << " " << nextPosition.y << " " << nextPosition.z << std::endl;
+            for (auto& [id, object] : objects) {
+                if (object->isCamera) {
+                    continue;
+                    toRemove.push_back(bullet);
+                };
+            }
+
+            if (bullet->lifetime <= 0) {
+                it = bullets.erase(it);
+            } else {
+                bullet->position = nextPosition;
+                bullet->lifetime -= dt;
+                ++it;
+            }
+
+            for (auto& bullet : toRemove) {
+                bullets.erase(std::remove(bullets.begin(), bullets.end(), bullet), bullets.end());
+            }
+        }
         for (auto& [id, object] : objects) {
             if (object->isDynamic) {
                 object->force += object->mass * object->gravity;
@@ -102,13 +152,25 @@ public:
 
             std::vector<BroadCollision> broadCollisions;
             if (!object->isCamera) {
-                if (object->position != object->model->boundingbox.position) {
-                    object->model->boundingbox.updateDifference(object->position);
-                    object->model->boundingbox.rotate(object->model->pitch, object->model->yaw, 0.0);
-                }
+                object->model->boundingbox.pitch = object->model->pitch;
+                object->model->boundingbox.yaw = object->model->yaw;
+                object->model->boundingbox.roll = object->model->roll;
+                object->model->position = object->position;
+
+                object->model->boundingbox.updateRotation();
+                object->model->boundingbox.updateAABB();
+                object->model->boundingbox.translate(object->model->position - object->model->boundingbox.position);
+                object->model->boundingbox.updateAABB();
                 broadCollisions = collider.broadCollide(object->model);
+
+                /*std::cout << "debug info before update" << sweep->mesh->boundingbox.min.x << " "
+                          << sweep->mesh->boundingbox.min.y << " " << sweep->mesh->boundingbox.min.z << " "
+                          << sweep->mesh->boundingbox.max.x << " " << sweep->mesh->boundingbox.max.y << " "
+                          << sweep->mesh->boundingbox.max.z << std::endl;
+                */
+
             } else {
-                broadCollisions = collider.broadCollide(object->camera);
+                collider.broadCollide(object->camera);
             }
 
             for (auto& bc : broadCollisions) {
@@ -123,15 +185,15 @@ public:
 
             std::shared_ptr<std::unordered_map<int, std::shared_ptr<physics::Object>>> pObjects = std::make_shared<std::unordered_map<int, std::shared_ptr<physics::Object>>>(
                 objects);
-            // collider.resolveCollisions(broadCollisions, pObjects, dt);
-            if (!object->isCamera)
-                // object->model->position = object->position;
-                // object->force = glm::vec3(0);
-                // object->velocity *= DECELERATION;
+  //          collider.resolveCollisions(broadCollisions, pObjects, dt);
+//           if (!object->isCamera)
 
-                if (glm::length(object->velocity) < ZERO_THRESHOLD) {
-                    object->velocity = glm::vec3(0);
-                }
+            object->force = glm::vec3(0);
+            // object->velocity *= DECELERATION;
+
+            if (glm::length(object->velocity) < ZERO_THRESHOLD) {
+                object->velocity = glm::vec3(0);
+            }
         }
     }
 };

@@ -74,6 +74,11 @@ public:
         states.push_back(state);
     }
 
+    bool active()
+    {
+        return states[currentIndex]->animation->isActive();
+    }
+
     void nextState()
     {
         if (states.empty() || states[currentIndex]->animation->isActive())
@@ -180,20 +185,27 @@ std::shared_ptr<AnimationCycle> armAnimation(std::shared_ptr<Model>& leftArm, bo
 
 std::shared_ptr<AnimationCycle> initGunHouseAnimation(std::shared_ptr<Model> gun)
 {
-    BaseAnimation open(0.2, [](float delta, std::shared_ptr<Model> model) {
-        model->roll -= 4.0 * (delta * 30);
+
+    BaseAnimation waiting(0, [](float delta, std::shared_ptr<Model> model) {
+        return;
+    });
+    BaseAnimation open(0.1, [](float delta, std::shared_ptr<Model> model) {
+        model->roll -= 5.0 * (delta * 30);
         model->position.x += 0.1;
     });
-    BaseAnimation closed(0.2, [](float delta, std::shared_ptr<Model> model) {
-        model->roll += 4.0 * (delta * 30);
+    BaseAnimation closed(0.1, [](float delta, std::shared_ptr<Model> model) {
+        model->roll += 5.0 * (delta * 30);
         model->position.x += 0.1;
     });
 
+    State waitingState(gun, std::make_shared<BaseAnimation>(waiting), false);
     State closedState(gun, std::make_shared<BaseAnimation>(closed), true);
     State openedState(gun, std::make_shared<BaseAnimation>(open), true);
+    std::shared_ptr<State> waitingStatePtr = std::make_shared<State>(waitingState);
     std::shared_ptr<State> closedStatePtr = std::make_shared<State>(closedState);
     std::shared_ptr<State> openedStatePtr = std::make_shared<State>(openedState);
     std::shared_ptr<AnimationCycle> doorAnimation = std::make_shared<AnimationCycle>();
+    doorAnimation->addState(waitingStatePtr);
     doorAnimation->addState(closedStatePtr);
     doorAnimation->addState(openedStatePtr);
     return doorAnimation;

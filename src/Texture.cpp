@@ -42,8 +42,6 @@ void Texture::Load(unsigned int a, void* pData)
 
 bool Texture::Load()
 {
-    stbi_set_flip_vertically_on_load(1);
-
     unsigned char* pImageData = stbi_load(m_fileName.c_str(), &m_imageWidth, &m_imageHeight, &m_imageBPP, 0);
 
     if (!pImageData) {

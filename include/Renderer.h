@@ -29,7 +29,7 @@ public:
         , cam(cam)
         , terrain(terrain)
     {
-        lightPos = cam->position;
+        lightPos = glm::vec3(-1, -1, -1);
     };
 
     void enqueue(const Shader& shader, std::initializer_list<std::shared_ptr<Model>> model)
@@ -50,8 +50,8 @@ public:
         lightingShader.setVec3("viewPos", cam->position);
         lightingShader.setFloat("shininess", 30);
         lightingShader.setVec3("dirLight.direction", lightPos);
-        lightingShader.setVec3("dirLight.ambient", 0.2f, 0.2f, 0.2f);
-        lightingShader.setVec3("dirLight.diffuse", 0.05f, 0.05f, 0.05f);
+        lightingShader.setVec3("dirLight.ambient", 0.1f, 0.1f, 0.1f);
+        lightingShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
         lightingShader.setVec3("dirLight.specular", 0.2f, 0.2f, 0.2f);
         lightingShader.setVec3("pointLights[0].position", pointLightPositions[0]);
         lightingShader.setVec3("pointLights[0].ambient", 0.2f, 0.2f, 0.2f);
@@ -95,9 +95,22 @@ public:
                 model = glm::rotate(model, glm::radians(modelPtr->pitch), glm::vec3(1, 0, 0));
                 model = glm::rotate(model, glm::radians(modelPtr->roll), glm::vec3(0, 0, 1));
                 shader->setMat4("model", model);
-                modelPtr->draw(*shader);
+                if (modelPtr->isInstanced) {
+                    modelPtr->drawInstanced(*shader);
+                } else {
+                    modelPtr->draw(*shader);
+                }
             }
         }
+    }
+
+    void clear()
+    {
+        for (auto& [key, value] : renderQueue) {
+            value.clear();
+        }
+        renderQueue.clear();
+        shaders.clear();
     }
 };
 
