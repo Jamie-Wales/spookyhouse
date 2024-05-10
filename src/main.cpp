@@ -250,23 +250,23 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         }
     }
     if (key == GLFW_KEY_E && action == GLFW_RELEASE) {
-        for (auto physobj : world.triggers) {
+        for (auto& physobj : world.getTriggers(camera->boundingBox)) {
             switch (physobj->model->id) {
             case 1:
             case 2:
                 player.state = PlayerState::State::GUN;
                 player.changed = true;
-                return;
+                break;
             case 3:
                 insideCart = !insideCart;
-                return;
+                break;
             default:
                 break;
             }
         }
-
         world.triggers.clear();
     }
+
     if (key == GLFW_KEY_X && action == GLFW_RELEASE) {
         if (debug) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -412,7 +412,7 @@ int main()
     cameraHolder.incrementCurrentCamera();
     world.addModel(house, true, false, true);
     world.addModel(cart, false, true, true);
-    // world.addModel(scope, false, true, true);
+    world.addModel(gun, false, true, true);
     // world.addModel(house, false, false, true);
 
     Cube cube = Cube(platform->boundingbox);
