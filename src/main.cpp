@@ -40,7 +40,7 @@ void glfwSetUpFunctions()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "Spooky", nullptr, nullptr);
     if (window == nullptr)
         exit(1);
     glfwMakeContextCurrent(window);
@@ -207,10 +207,10 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 
 void processInput(GLFWwindow* window, const std::shared_ptr<Terrain>& terrain);
 
-float height = 1080;
+float height = 2000;
 CameraHolder cameraHolder;
 std::shared_ptr<Camera> camera;
-float width = 1920;
+float width = 3080;
 int amount = 5000;
 glm::mat4 projection = glm::perspective(glm::radians(45.0f),
     width / height, 0.1f, 1000.0f);
@@ -228,10 +228,11 @@ PlayerState player;
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (key == GLFW_KEY_R && action == GLFW_RELEASE) {
-        player.state = PlayerState::State::DUNGEON,
+        player.state = PlayerState::State::TORCH,
         player.changed = true;
         return;
     }
+
     if (key == GLFW_KEY_C && action == GLFW_RELEASE) {
         cameraHolder.incrementCurrentCamera();
         switch (player.state) {
@@ -276,28 +277,28 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         debug = !debug;
     }
     if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN)
+        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN && player.state != PlayerState::State::TORCH)
             player.state = PlayerState::State::RUNNING;
     } else if (key == GLFW_KEY_W && action == GLFW_RELEASE) {
-        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN)
+        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN && player.state != PlayerState::State::TORCH)
             player.state = PlayerState::State::IDLE;
     } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN)
+        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN && player.state != PlayerState::State::TORCH)
             player.state = PlayerState::State::RUNNING;
     } else if (key == GLFW_KEY_S && action == GLFW_RELEASE) {
-        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN)
+        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN && player.state != PlayerState::State::TORCH)
             player.state = PlayerState::State::IDLE;
     } else if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN)
+        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN && player.state != PlayerState::State::TORCH)
             player.state = PlayerState::State::RUNNING;
     } else if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
-        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN)
+        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN && player.state != PlayerState::State::TORCH)
             player.state = PlayerState::State::IDLE;
     } else if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN)
+        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN && player.state != PlayerState::State::TORCH)
             player.state = PlayerState::State::RUNNING;
     } else if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
-        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN)
+        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN & player.state != PlayerState::State::TORCH)
             player.state = PlayerState::State::IDLE;
     }
 }
@@ -319,8 +320,8 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(3000, 2000, "Spooky House", NULL, NULL);
-    if (window == NULL)
+    GLFWwindow* window = glfwCreateWindow(width, height, "Spooky House", nullptr, nullptr);
+    if (window == nullptr)
         return 1;
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
@@ -348,7 +349,6 @@ int main()
     CubicSpline cSpline = CubicSpline();
 
     Shader shader("../src/modelLoading.vert.glsl", "../src/modelLoading.frag.glsl");
-    Shader treeShader("../src/tree.vert.glsl", "../src/tree.frag.glsl");
     Shader depth("../src/depthShader.vert.glsl", "../src/depthShader.frag.glsl");
     Shader basic("../src/basic.vert.glsl", "../src/basic.frag.glsl");
     auto treeOne = std::make_shared<Model>("../assets/tree/treeOne.obj", glm::mat4(1.0f), glm::vec3(0.0), 202, 0.0,
@@ -367,6 +367,8 @@ int main()
         0.0);
     auto right = std::make_shared<Model>("../assets/player/nright.obj", glm::mat4(1.0f), glm::vec3(0.0), 6, 0.0, 10.0,
         0.0);
+
+    auto torch = std::make_shared<Model>("../assets/player/torch.obj", glm::mat4(1.0f), glm::vec3(0.0), 5, 0.0, 0.0, 0.0);
     // auto hallway = std::make_shared<Model>("../assets/dungeon/dungeon.obj", glm::mat4(1.0), glm::vec3(0.0), 7, 0.0, 0.0, 0.0);
     std::vector<std::vector<glm::mat4>> translations { 5 };
     world = physics::PhysicsWorld();
@@ -379,10 +381,10 @@ int main()
     terrain = std::make_shared<Terrain>(ter);
 
     auto gun = std::make_shared<Model>("../assets/player/pistolbut.obj", glm::mat4(1.0f),
-        glm::vec3(375, -terrain->GetHeightInterpolated(375, 109) + 1.0f, 109), 1, 0.0,
+        glm::vec3(10, -terrain->GetHeightInterpolated(10, 10) + 1.0f, 10), 1, 0.0,
         0.0, 0.0);
     auto scope = std::make_shared<Model>("../assets/player/pistolscope.obj", glm::mat4(1.0f),
-        glm::vec3(375, -terrain->GetHeightInterpolated(375, 109) + 1.0f, 109), 2, 0.0,
+        glm::vec3(10, -terrain->GetHeightInterpolated(375, 109) + 1.0f, 109), 10, 0.0,
         0.0, 0.0);
     auto platform = std::make_shared<Model>("../assets/house/platform.obj", glm::mat4(1.0f),
         glm::vec3(250.0, (-terrain->GetHeightInterpolated(250.0, 200.0) + 50.0f),
@@ -390,9 +392,15 @@ int main()
         64, 0, 0, 0.0);
 
     auto house = std::make_shared<Model>("../assets/house/hh.obj", glm::mat4(1.0f),
-        glm::vec3(300.0, 0, 234),
+        glm::vec3(300.0, platform->position.y + 20.0f, 234),
         60, 90, 90, 0.0);
-    house->position.y = platform->position.y + 20.0f;
+    auto lampOne = std::make_shared<Model>("../assets/lamps/lampOne.obj", glm::mat4(1.0f), glm::vec3(416.0f, platform->position.y - 7.0f, 100.0f), 301, 0.0, 0.0,
+        0.0);
+    auto lampTwo = std::make_shared<Model>("../assets/lamps/lampTwo.obj", glm::mat4(1.0f), glm::vec3(174.0f, platform->position.y - 7.0f, 324.0f), 302, 0.0, 0.0,
+        0.0);
+    auto lampThree = std::make_shared<Model>("../assets/lamps/lampThree.obj", glm::mat4(1.0f), glm::vec3(217.0f, platform->position.y - 7.0f, 88.0f), 303, 0.0,
+        0.0, 0.0);
+
     initMultiTree(amount, 6, 250, 560.0, translations, house->position, *terrain);
     auto track = std::make_shared<Model>("../assets/track/track.obj", glm::mat4(1.0f),
         glm::vec3(305.2f, house->position.y - 13.0, 177.5f), 111, 3.0, 82.5, -3.0);
@@ -410,12 +418,11 @@ int main()
     camera = cameraHolder.getCam();
     world.addCamera(camera, true, false, false);
     cameraHolder.incrementCurrentCamera();
-    world.addModel(house, true, false, true);
+    world.addModel(house, false, false, true);
     world.addModel(cart, false, true, true);
     world.addModel(gun, false, true, true);
     // world.addModel(house, false, false, true);
 
-    Cube cube = Cube(platform->boundingbox);
     glm::vec3 s1(207.5, track->position.y, 131.7);
     glm::vec3 s2 = glm::vec3(243.39, track->position.y + 4.2, 130.45); // Added in the gradual rise between s1 and s2
     glm::vec3 s3(269.50, track->position.y + 8.7, 130.56);
@@ -463,8 +470,11 @@ int main()
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)nullptr);
     Renderer renderer { projection, camera, *terrain };
-    renderer.enqueue(shader, { track, house, cart, left, right, gun, scope, platform, treeOne, treeTwo, treeFour, treeFive, treeSix });
-    player = { left, right, gun, scope };
+    renderer.enqueue(shader, { track, house, cart, left, right, gun, scope, platform, treeOne, treeTwo, treeFour, treeFive, treeSix, lampOne, lampTwo, lampThree });
+    renderer.addLampPointLight(lampOne->position);
+    renderer.addLampPointLight(lampTwo->position);
+    renderer.addLampPointLight(lampThree->position);
+    player = { left, right, gun, scope, torch };
     glm::vec3& lightPos = renderer.lightPos;
     auto lastFrameTime = static_cast<float>(glfwGetTime());
     bool xChange = false;
@@ -494,14 +504,8 @@ int main()
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glm::mat4 lightView = glm::lookAt(glm::vec3(-10.0f, 100.0f, -10), glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f));
-
-    float near_plane = 1.0f, far_plane = 100.0f;
-    glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, -20.0f, near_plane, far_plane);
-    glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-    renderer.lightSpaceMatrix = lightSpaceMatrix;
-
+    int lightningCounter = 1;
+    int lightning = 0;
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         if (player.isShooting) {
@@ -510,6 +514,30 @@ int main()
         }
         camera = cameraHolder.getCam();
         renderer.cam = camera;
+        renderer.torchPos = player.torch->position;
+
+        /*
+        int randAmount = 80;
+        if (renderer.lightning) {
+            if (randAmount < 2 || rand() % (randAmount / lightningCounter) == 0) {
+                renderer.lightningSwitch();
+                lightningCounter = 1;
+            } else {
+                lightningCounter++;
+            }
+        }
+        if (rand() % randAmount < 1) {
+            renderer.lightningSwitch();
+        }
+        */
+
+        glm::mat4 lightView = glm::lookAt(glm::vec3(-10.0f, 100.0f, -10), glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f));
+
+        float near_plane = 1.0f, far_plane = 100.0f;
+        glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, -20.0f, near_plane, far_plane);
+        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+        renderer.lightSpaceMatrix = lightSpaceMatrix;
         if (player.state == PlayerState::State::FLYING && player.changed) {
             renderer.removeModel(shader.ID, left);
             renderer.removeModel(shader.ID, right);
@@ -520,18 +548,17 @@ int main()
             renderer.addModel(shader.ID, left);
             renderer.addModel(shader.ID, right);
             player.changed = false;
-        } else if (player.state == PlayerState::State::DUNGEON && player.changed) {
-            // renderer.clear();
-            // renderer.enqueue(shader, { hallway });
-            // renderer.lightPos = glm::vec3(0.0, 0.0, 0.0);
-            // camera->position = glm::vec3(0.0, 0.0, 0.0);
-            // player.changed = false;
         } else if (player.state == PlayerState::State::GUN && player.changed) {
             renderer.removeModel(shader.ID, left);
             renderer.removeModel(shader.ID, right);
             player.changed = false;
+        } else if (player.state == PlayerState::State::TORCH && player.changed) {
+            renderer.removeModel(shader.ID, left);
+            renderer.removeModel(shader.ID, right);
+            renderer.addModel(shader.ID, torch);
+            player.changed = false;
         }
-        float currentFrameTime = static_cast<float>(glfwGetTime());
+        auto currentFrameTime = static_cast<float>(glfwGetTime());
         deltaTime = currentFrameTime - lastFrameTime;
         lastFrameTime = currentFrameTime;
         if (debug) {
@@ -646,10 +673,14 @@ int main()
 
         glCullFace(GL_FRONT);
         renderer.renderShadowMap(depth);
+        if (renderer.torch) {
+            lightView = glm::lookAt(camera->position, glm::vec3(0.0f, 0.0f, 0.0f),
+                glm::vec3(0.0f, 1.0f, 0.0f));
+            renderer.renderShadowMap(depth);
+        }
         glCullFace(GL_BACK); //
         glBindTexture(GL_TEXTURE_2D, depthMap);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderer.renderAll();
@@ -682,32 +713,22 @@ int main()
         while ((err = glGetError()) != GL_NO_ERROR) {
             std::cerr << "OpenGL error: " << err << std::endl;
         }
-        if (player.state != PlayerState::State::DUNGEON) {
-            terrain->terrainShader.use();
-            terrain->terrainShader.setMat4("projection", projection);
-            terrain->terrainShader.setMat4("view", camera->getCameraView());
-            terrain->terrainShader.setMat4("model", glm::translate(glm::mat4(1.0), terrain->terposition));
-            terrain->terrainShader.setVec3("lightDir", lightPos);
-            terrain->terrainShader.setVec3("lightColor", glm::vec3(1.0f));
-            terrain->terrainShader.setVec3("viewPos", camera->position);
-            terrain->terrainShader.setFloat("minHeight", terrain->minHeight);
-            terrain->terrainShader.setFloat("maxHeight", terrain->maxHeight);
-
-            terrain->render();
-        }
         if (down > 3.0) {
             updown = true;
         }
         if (down < 0) {
             updown = false;
         }
-        /*treeShader.use();
-        renderer.lightingShader(treeShader);
-        treeShader.setInt("texture_diffuse1", 0);
-        treeShader.setFloat("shininess", 3);
-        treeShader.setMat4("projection", projection);
-        treeShader.setMat4("view", camera->getCameraView());*
-*/
+        terrain->terrainShader.use();
+        terrain->terrainShader.setMat4("projection", projection);
+        terrain->terrainShader.setMat4("view", camera->getCameraView());
+        terrain->terrainShader.setMat4("model", glm::translate(glm::mat4(1.0), terrain->terposition));
+        terrain->terrainShader.setVec3("lightDir", lightPos);
+        terrain->terrainShader.setVec3("lightColor", glm::vec3(1.0f));
+        terrain->terrainShader.setVec3("viewPos", camera->position);
+        terrain->terrainShader.setFloat("minHeight", terrain->minHeight);
+        terrain->terrainShader.setFloat("maxHeight", terrain->maxHeight);
+        terrain->render();
         basic.use();
         basic.setMat4("projection", projection);
         basic.setMat4("view", camera->getCameraView());

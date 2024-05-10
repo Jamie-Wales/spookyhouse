@@ -26,7 +26,7 @@ public:
 
     BoundingBox(const glm::vec3& cameraPosition)
         : position(cameraPosition)
-        , extents(glm::vec3(1.0f))
+        , extents(glm::vec3(0.5f))
         , axis { glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) }
     {
     }

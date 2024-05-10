@@ -18,22 +18,32 @@ private:
     Terrain& terrain;
 
 public:
-    std::vector<glm::vec3> pointLightPositions = {
-        glm::vec3(300, 200, 100),
-        glm::vec3(200.0f, 69, 400),
-    };
+    bool lightning = false;
+    std::vector<glm::vec3> pointLightPositions = {};
     glm::vec3 lightPos;
     std::shared_ptr<Camera> cam;
     glm::mat4 lightSpaceMatrix;
+    bool torch = true;
+    glm::vec3 torchPos = glm::vec3(0.0f, 0.0f, 0.0f);
 
     Renderer(glm::mat4 projection, std::shared_ptr<Camera> cam, Terrain& terrain)
         : projection(projection)
         , cam(std::move(cam))
         , terrain(terrain)
     {
-        lightPos = glm::vec3(-0.1f, -100.0f, -0.1f);
+        lightPos = glm::vec3(-10.0f, -10.0f, -10.0f);
     }
 
+    void lightningSwitch()
+    {
+        lightning = !lightning;
+    }
+
+    void addLampPointLight(glm::vec3 position)
+    {
+        position.y += 25;
+        pointLightPositions.push_back(position);
+    }
     void enqueue(const Shader& shader, std::initializer_list<std::shared_ptr<Model>> model)
     {
         for (auto& m : model) {
@@ -55,27 +65,52 @@ public:
         lightingShader.setFloat("shininess", 30.0f);
 
         lightingShader.setVec3("dirLight.direction", lightPos);
-        lightingShader.setVec3("dirLight.ambient", 0.2f, 0.2f, 0.2f);
+        if (lightning) {
+            lightingShader.setVec3("dirLight.ambient", 0.25f, 0.21f, 0.11f);
+        } else {
+            lightingShader.setVec3("dirLight.ambient", 0.2f, 0.2f, 0.2f);
+        }
+
+        lightingShader.setBool("torch", torch);
+        lightingShader.setVec3("spotLight.position", torchPos);
+        lightingShader.setVec3("spotLight.direction", cam->front);
+        lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        lightingShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        lightingShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        lightingShader.setFloat("spotLight.constant", 1.0f);
+        lightingShader.setFloat("spotLight.linear", 0.0009f);
+        lightingShader.setFloat("spotLight.quadratic", 0.00032f);
+        lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(20.5f)));
+        lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(25.0f)));
         lightingShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
         lightingShader.setVec3("dirLight.specular", 0.8f, 0.8f, 0.8f);
+        lightingShader.setBool("lightning", lightning);
 
         // Set first point light properties
         lightingShader.setVec3("pointLights[0].position", pointLightPositions[0]);
-        lightingShader.setVec3("pointLights[0].ambient", 0.6f, 0.6f, 0.2f);
+        lightingShader.setVec3("pointLights[0].ambient", 0.6f, 0.6f, 0.6f);
         lightingShader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
         lightingShader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
         lightingShader.setFloat("pointLights[0].constant", 1.0f);
-        lightingShader.setFloat("pointLights[0].linear", 0.09f);
-        lightingShader.setFloat("pointLights[0].quadratic", 0.032f);
+        lightingShader.setFloat("pointLights[0].linear", 0.009f);
+        lightingShader.setFloat("pointLights[0].quadratic", 0.0032f);
 
         // Set second point light properties
         lightingShader.setVec3("pointLights[1].position", pointLightPositions[1]);
-        lightingShader.setVec3("pointLights[1].ambient", 0.6f, 0.6f, 0.2f);
+        lightingShader.setVec3("pointLights[1].ambient", 0.6f, 0.6f, 0.6f);
         lightingShader.setVec3("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
         lightingShader.setVec3("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
         lightingShader.setFloat("pointLights[1].constant", 1.0f);
         lightingShader.setFloat("pointLights[1].linear", 0.09f);
-        lightingShader.setFloat("pointLights[1].quadratic", 0.032f);
+        lightingShader.setFloat("pointLights[1].quadratic", 0.0032f);
+
+        lightingShader.setVec3("pointLights[2].position", pointLightPositions[2]);
+        lightingShader.setVec3("pointLights[2].ambient", 0.6f, 0.6f, 0.6f);
+        lightingShader.setVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
+        lightingShader.setVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
+        lightingShader.setFloat("pointLights[2].constant", 1.0f);
+        lightingShader.setFloat("pointLights[2].linear", 0.009f);
+        lightingShader.setFloat("pointLights[2].quadratic", 0.0032f);
     }
 
     void addModel(int shaderId, const std::shared_ptr<Model>& model)

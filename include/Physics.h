@@ -97,7 +97,7 @@ public:
         collider.addCamera(camera);
     }
 
-    void removeObject(std::shared_ptr<Object> object)
+    void removeObject(const std::shared_ptr<Object>& object)
     {
         objects.erase(object->model->id);
     }
@@ -188,15 +188,20 @@ public:
 
             std::vector<BroadCollision> broadCollisions;
             if (!object->isCamera) {
-                object->model->boundingbox.pitch = object->model->pitch;
-                object->model->boundingbox.yaw = object->model->yaw;
-                object->model->boundingbox.roll = object->model->roll;
-                object->model->boundingbox.updateRotation();
-                object->model->boundingbox.updateAABB();
-                object->model->boundingbox.translate(
-                    object->model->position - object->model->boundingbox.position);
-                object->model->boundingbox.updateAABB();
-                broadCollisions = collider.broadCollide(object->model);
+
+                if (object->model->boundingbox.pitch != object->model->pitch || object->model->boundingbox.yaw != object->model->yaw) {
+
+                    object->model->boundingbox.pitch = object->model->pitch;
+                    object->model->boundingbox.yaw = object->model->yaw;
+                    object->model->boundingbox.roll = object->model->roll;
+                    object->model->boundingbox.updateRotation();
+                    object->model->boundingbox.updateAABB();
+                }
+                if (object->model->position != object->position) {
+                    object->model->boundingbox.translate(
+                        object->position - object->model->boundingbox.position);
+                    object->model->boundingbox.updateAABB();
+                }
             } else {
                 if (object->camera->boundingBox.pitch != object->camera->options.pitch || object->camera->boundingBox.yaw != object->camera->options.yaw) {
                     object->camera->boundingBox.pitch = object->camera->options.pitch;
@@ -219,8 +224,7 @@ public:
             if (object->isCamera) {
                 object->camera->position = object->position;
             } else {
-                if (!object->isStatic)
-                    object->model->position = object->position;
+                object->model->position = object->position;
             }
 
             object->force = glm::vec3(0);

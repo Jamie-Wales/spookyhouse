@@ -134,13 +134,13 @@ void resolveCollisions(
             Sphere sphereB;
 
             if (objA->isCamera) {
-                sphereA = boundingBoxToSphere(objA->camera->boundingBox);
+                sphereA = Sphere{objA->position, 0.5};
             } else {
                 sphereA = boundingBoxToSphere(pair.firstMesh->boundingbox);
             }
 
             if (objB->isCamera) {
-                sphereB = boundingBoxToSphere(objB->camera->boundingBox);
+                sphereB = Sphere{objB->position, 0.1};
             } else {
                 sphereB = boundingBoxToSphere(pair.secondMesh->boundingbox);
             }
@@ -153,14 +153,10 @@ void resolveCollisions(
             checkCollisions(colPacketB, sphereA);
 
             if (colPacketA->foundCollision || colPacketB->foundCollision) {
-                // Perform finer collision detection using mesh vertices
                 glm::vec3 collisionNormal = glm::normalize(colPacketA->obj->position - colPacketB->obj->position);
-
-
                 if (!colPacketA->foundCollision && !colPacketB->foundCollision) {
                     continue;
                 }
-
                 float relativeVelocity = glm::dot(colPacketB->obj->velocity - colPacketA->obj->velocity, collisionNormal);
                 if (relativeVelocity < 0)
                     continue;
