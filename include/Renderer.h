@@ -31,7 +31,7 @@ public:
         , cam(std::move(cam))
         , terrain(terrain)
     {
-        lightPos = glm::vec3(-10.0f, 100.0f, -10.0f);
+        lightPos = glm::vec3(-0.1f, -100.0f, -0.1f);
     }
 
     void enqueue(const Shader& shader, std::initializer_list<std::shared_ptr<Model>> model)
@@ -52,9 +52,8 @@ public:
     {
         lightingShader.setVec3("lightPos", lightPos);
         lightingShader.setVec3("viewPos", cam->position);
-        lightingShader.setFloat("material.shininess", 300.0f);
+        lightingShader.setFloat("shininess", 30.0f);
 
-        // Set directional light properties
         lightingShader.setVec3("dirLight.direction", lightPos);
         lightingShader.setVec3("dirLight.ambient", 0.2f, 0.2f, 0.2f);
         lightingShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);

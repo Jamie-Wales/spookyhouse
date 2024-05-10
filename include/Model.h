@@ -95,9 +95,13 @@ public:
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, this->textures_loaded[0].id);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, this->textures_loaded[1].id);
         for (unsigned int i = 0; i < this->meshes.size(); i++) {
 
             shader.setInt("texture_diffuse1", 0);
+            shader.setInt("texture_specular1", 1);
             glBindVertexArray(this->meshes[i].VAO);
             glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(this->meshes[i].indices.size()),
                 GL_UNSIGNED_INT, nullptr, instanceAmount);
