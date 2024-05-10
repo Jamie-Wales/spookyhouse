@@ -26,15 +26,29 @@ public:
 
     BoundingBox(const glm::vec3& cameraPosition)
         : position(cameraPosition)
-        , extents(glm::vec3(0.5f))
+        , extents(glm::vec3(1.0f))
         , axis { glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) }
     {
     }
 
-    bool checkPoint(const glm::vec3& point)
-    {
-        return point.x >= min.x && point.x <= max.x && point.y >= min.y && point.y <= max.y && point.z >= min.z && point.z <= max.z;
+
+    bool intersects(const BoundingBox &other, float scale = 0.0f) const {
+        glm::vec3 scaledMin = min - glm::vec3(scale);
+        glm::vec3 scaledMax = max + glm::vec3(scale);
+
+        glm::vec3 otherScaledMin = other.min - glm::vec3(scale);
+        glm::vec3 otherScaledMax = other.max + glm::vec3(scale);
+
+        return (scaledMin.x <= otherScaledMax.x && scaledMax.x >= otherScaledMin.x) &&
+               (scaledMin.y <= otherScaledMax.y && scaledMax.y >= otherScaledMin.y) &&
+               (scaledMin.z <= otherScaledMax.z && scaledMax.z >= otherScaledMin.z);
     }
+      bool intersects(const glm::vec3 &point) const {
+        return (point.x >= min.x && point.x <= max.x) &&
+               (point.y >= min.y && point.y <= max.y) &&
+               (point.z >= min.z && point.z <= max.z);
+    }
+
     void updateRotation()
     {
         rotation = glm::rotate(glm::mat4(1.0f), glm::radians(pitch), glm::vec3(1.0f, 0.0f, 0.0f))

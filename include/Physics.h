@@ -39,13 +39,23 @@ namespace physics {
         std::vector<std::shared_ptr<physics::Object> > triggers = {};
         std::vector<std::shared_ptr<Bullet> > bullets = {};
 
-        void fireBullet(glm::vec3 position, glm::vec3 direction, float speed = 10.0f) {
-            std::cout << "position" << position.x << " " << position.y << " " << position.z << std::endl;
-            std::cout << "direction" << direction.x << " " << direction.y << " " << direction.z << std::endl;
+        void fireBullet(glm::vec3 position, glm::vec3 direction, float speed = 500.0f) {
             glm::vec3 velocity = glm::normalize(direction) * speed;
-            std::cout << "velocity" << velocity.x << " " << velocity.y << " " << velocity.z << std::endl;
             std::shared_ptr<Bullet> bullet = std::make_shared<Bullet>(position, velocity);
             bullets.push_back(bullet);
+        }
+
+        std::vector<std::shared_ptr<physics::Object> > getTriggers(const BoundingBox &cameraBoundingBox) {
+            std::vector<std::shared_ptr<physics::Object> > triggers = {};
+            for (auto &[id, object]: objects) {
+                if (object->isTrigger) {
+                    BoundingBox enlargedBox = object->model->boundingbox;
+                    if (enlargedBox.intersects(cameraBoundingBox, 10.0f)) {
+                        triggers.push_back(object);
+                    }
+                }
+            }
+            return triggers;
         }
 
         void addModel(std::shared_ptr<Model> &model, bool isDynamic, bool isTrigger, bool isStatic) {
@@ -106,18 +116,24 @@ namespace physics {
         }
 
         void tick(float dt, Terrain &terrain) {
-            triggers.clear();
             std::vector<std::shared_ptr<Bullet> > toRemove = {};
             auto it = bullets.begin();
             while (it != bullets.end()) {
                 auto &bullet = *it;
-                glm::vec3 nextPosition = bullet->position + (bullet->velocity * dt);
-                std::cout << "NEWPOS" << nextPosition.x << " " << nextPosition.y << " " << nextPosition.z << std::endl;
-                for (auto &[id, object]: objects) {
-                    if (object->isCamera) {
-                        continue;
-                        toRemove.push_back(bullet);
-                    };
+                bool hit = false;
+                glm::vec3 nextPosition;
+                for (int i = 0; i < 5; i++) {
+                    nextPosition = bullet->position + (bullet->velocity * dt);
+                    for (auto &[id, object]: objects) {
+                        if (object->isCamera) continue;
+                        if (object->model->boundingbox.intersects(nextPosition)) {
+                            std::cout << "MODEL HIT" << object->model->id;
+                            toRemove.push_back(bullet);
+                            hit = true;
+                            break;
+                        }
+                    }
+                    if (hit) break;
                 }
 
                 if (bullet->lifetime <= 0) {
@@ -127,10 +143,10 @@ namespace physics {
                     bullet->lifetime -= dt;
                     ++it;
                 }
+            }
 
-                for (auto &bullet: toRemove) {
-                    bullets.erase(std::remove(bullets.begin(), bullets.end(), bullet), bullets.end());
-                }
+            for (auto &bullet: toRemove) {
+                bullets.erase(std::remove(bullets.begin(), bullets.end(), bullet), bullets.end());
             }
             for (auto &[id, object]: objects) {
                 if (object->isDynamic) {
@@ -141,7 +157,7 @@ namespace physics {
                     object->velocity += acceleration * dt;
                     object->velocity *= DAMPENING;
                     object->position += object->velocity * dt;
-                    if (object->isCamera) {
+                    if (object->isCamera && object->camera->firstPerson) {
                         if (object->position.y != -terrain.getTerPosition(object->position.x, object->position.z) +
                             20.0f) {
                             object->position.y = glm::mix(object->position.y,
@@ -151,7 +167,8 @@ namespace physics {
                     }
                     if (object->position.y < -terrain.
                         GetHeightInterpolated(object->position.x, object->position.z)) {
-                        object->position.y = -terrain.GetHeightInterpolated(object->position.x, object->position.z) + 2.0f;
+                        object->position.y = -terrain.GetHeightInterpolated(object->position.x, object->position.z) +
+                                             2.0f;
                         object->velocity.y = 0;
                     }
                 } else {
@@ -184,16 +201,6 @@ namespace physics {
                         object->camera->boundingBox.updateAABB();
                     }
                     broadCollisions = collider.broadCollide(object->camera);
-                }
-
-                for (auto &bc: broadCollisions) {
-                    auto objecta = objects[bc.modelIdA];
-                    auto objectb = objects[bc.modelIdB];
-                    if (objecta->isTrigger && objectb->isCamera) {
-                        triggers.push_back(objecta);
-                    } else if (objectb->isTrigger && objecta->isCamera) {
-                        triggers.push_back(objectb);
-                    }
                 }
 
                 std::shared_ptr<std::unordered_map<int, std::shared_ptr<physics::Object> > > pObjects =

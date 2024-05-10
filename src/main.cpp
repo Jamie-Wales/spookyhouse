@@ -13,7 +13,6 @@
 #include "Renderer.h"
 #include "Terrain.h"
 #include "imgui.h"
-#include "lib/miniaudo.h"
 #include "utils/Spline.h"
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/glm.hpp>
@@ -162,17 +161,50 @@ void bindLightCube(unsigned int &VAO, unsigned int &VBO) {
     glEnableVertexAttribArray(0);
 }
 
+void bindShadowFramebuffer(unsigned int framebuffer, unsigned int shadowWidth, unsigned int shadowHeight) {
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glViewport(0, 0, shadowWidth, shadowHeight);
+    glClear(GL_DEPTH_BUFFER_BIT);
+}
+
+void unbindFramebuffer(int width, int height) {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, width, height);
+}
+
+void bindTextures(unsigned int depthMap) {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, depthMap); // Bind the shadow map texture
+}
+
+void setTerrainShaderUniforms(Shader &shader, const glm::mat4 &projection, const glm::mat4 &view,
+                              const glm::mat4 &model, const glm::vec3 &lightDir, const glm::vec3 &lightColor,
+                              const glm::vec3 &viewPos, float minHeight, float maxHeight,
+                              const glm::mat4 &lightSpaceMatrix) {
+    shader.use();
+    shader.setMat4("projection", projection);
+    shader.setMat4("view", view);
+    shader.setMat4("model", model);
+    shader.setVec3("lightDir", lightDir);
+    shader.setVec3("lightColor", lightColor);
+    shader.setVec3("viewPos", viewPos);
+    shader.setFloat("minHeight", minHeight);
+    shader.setFloat("maxHeight", maxHeight);
+    shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+    shader.setInt("shadowMap", 4); // Set the sampler uniform to texture unit 4
+}
+
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
 
 void processInput(GLFWwindow *window, std::shared_ptr<Terrain> terrain);
 
-auto height = 2000;
+float height = 1080;
 CameraHolder cameraHolder;
 std::shared_ptr<Camera> camera;
-auto width = 3000;
+float width = 1920;
 int amount = 5000;
-auto projection = glm::perspective(glm::radians(45.0f),
-                                   (float) width / (float) height, 0.01f, 800.0f);
+glm::mat4 projection = glm::perspective(glm::radians(45.0f),
+                                        width / height, 0.1f, 1000.0f);
 float deltaTime = 0;
 float lastFrame = 0.0f;
 bool firstMouse = true;
@@ -219,7 +251,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
                     insideCart = !insideCart;
                     return;
                 default:
-                    return;
+                    break;
             }
         }
 
@@ -274,6 +306,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     GLFWwindow *window = glfwCreateWindow(3000, 2000, "Spooky House", NULL, NULL);
     if (window == NULL)
         return 1;
@@ -304,6 +337,7 @@ int main() {
 
     Shader shader("../src/modelLoading.vert.glsl", "../src/modelLoading.frag.glsl");
     Shader treeShader("../src/tree.vert.glsl", "../src/tree.frag.glsl");
+    Shader depth("../src/depthShader.vert.glsl", "../src/depthShader.frag.glsl");
     Shader basic("../src/basic.vert.glsl", "../src/basic.frag.glsl");
     auto treeOne = std::make_shared<Model>("../assets/tree/treeOne.obj", glm::mat4(1.0f), glm::vec3(0.0), 202, 0.0,
                                            9166, 0.0, 0.0);
@@ -340,9 +374,15 @@ int main() {
     auto scope = std::make_shared<Model>("../assets/player/pistolscope.obj", glm::mat4(1.0f),
                                          glm::vec3(375, -terrain->GetHeightInterpolated(375, 109) + 1.0f, 109), 2, 0.0,
                                          0.0, 0.0);
+    auto platform = std::make_shared<Model>("../assets/house/platform.obj", glm::mat4(1.0f),
+                                            glm::vec3(250.0, (-terrain->GetHeightInterpolated(250.0, 200.0) + 50.0f),
+                                                      200),
+                                            64, 0, 0, 0.0);
+
     auto house = std::make_shared<Model>("../assets/house/hh.obj", glm::mat4(1.0f),
-                                         glm::vec3(300.0, (-terrain->GetHeightInterpolated(300.0, 234.0) + 28.0f), 234),
+                                         glm::vec3(300.0, 0, 234),
                                          60, 90, 90, 0.0);
+    house->position.y = platform->position.y + 20.0f;
     initMultiTree(amount, 6, 250, 560.0, translations, house->position, *terrain);
     auto track = std::make_shared<Model>("../assets/track/track.obj", glm::mat4(1.0f),
                                          glm::vec3(305.2f, house->position.y - 13.0, 177.5f), 111, 3.0, 82.5, -3.0);
@@ -356,13 +396,16 @@ int main() {
     treeFive->initInstanced(translations[4].size(), translations[4]);
     treeSix->initInstanced(translations[5].size(), translations[5]);
     world.addCamera(camera, true, false, false);
+    cameraHolder.incrementCurrentCamera();
+    camera = cameraHolder.getCam();
+    world.addCamera(camera, true, false, false);
+    cameraHolder.incrementCurrentCamera();
     world.addModel(house, true, false, true);
-
-    // world.addModel(gun, false, true, true);
+    world.addModel(cart, false, true, true);
     // world.addModel(scope, false, true, true);
     // world.addModel(house, false, false, true);
 
-    Cube cube = Cube(gun->boundingbox);
+    Cube cube = Cube(platform->boundingbox);
     glm::vec3 s1(207.5, track->position.y, 131.7);
     glm::vec3 s2 = glm::vec3(243.39, track->position.y + 4.2, 130.45); // Added in the gradual rise between s1 and s2
     glm::vec3 s3(269.50, track->position.y + 8.7, 130.56);
@@ -410,8 +453,7 @@ int main() {
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
     Renderer renderer{projection, camera, *terrain};
-    renderer.enqueue(shader, {track, house, cart, left, right, gun, scope});
-    renderer.enqueue(treeShader, {treeOne, treeTwo, treeThree, treeFour, treeFive, treeSix});
+    renderer.enqueue(shader, {track, house, cart, left, right, gun, scope, platform});
     player = {left, right, gun, scope};
     glm::vec3 &lightPos = renderer.lightPos;
     auto lastFrameTime = static_cast<float>(glfwGetTime());
@@ -421,6 +463,36 @@ int main() {
     bool position = false;
     bool py = false;
     int controlMode = 0;
+
+    // Shadows setup
+    // -----------------------
+    const unsigned int SHADOW_WIDTH = 3000, SHADOW_HEIGHT = 3000;
+    unsigned int depthMapFBO;
+    glGenFramebuffers(1, &depthMapFBO);
+    // create depth texture
+    unsigned int depthMap;
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT,
+                 NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glm::mat4 lightView = glm::lookAt(glm::vec3(-10.0f, 100.0f, -10), glm::vec3(0.0f, 0.0f, 0.0f),
+                                      glm::vec3(0.0f, 1.0f, 0.0f));
+
+    float near_plane =1.0f, far_plane = 100.0f;
+    glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, -20.0f, near_plane, far_plane);
+    glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+    renderer.lightSpaceMatrix = lightSpaceMatrix;
+
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         if (player.isShooting) {
@@ -512,7 +584,6 @@ int main() {
                 positionControl("House", *house);
                 positionControl("Left", *left);
                 positionControl("Right", *right);
-                lightControl("Light", lightPos);
                 ImGui::End();
                 ImGui::Render();
             } else {
@@ -534,7 +605,6 @@ int main() {
                         case 1:
                             ImGui::DragFloat((std::string(label) + " Yaw").c_str(), &model.yaw, 0.1f, -360.0f, 360.0f,
                                              "%.3f");
-                            break;
                         case 2:
                             ImGui::DragFloat((std::string(label) + " Roll").c_str(), &model.roll, 0.1f, -360.0f, 360.0f,
                                              "%.3f");
@@ -554,8 +624,25 @@ int main() {
                 ImGui::Render();
             }
         }
-        /* ----------- OPENGL ----------------- */
-        glClearColor(0.4f, 0.1f, 0.05f, 1.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // 1. render depth of scene to texture (from light's perspective)
+        // --------------------------------------------------------------
+        depth.use();
+        depth.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glActiveTexture(GL_TEXTURE2);
+
+        glCullFace(GL_FRONT);
+        renderer.renderShadowMap(depth);
+        glCullFace(GL_BACK); //
+        glBindTexture(GL_TEXTURE_2D, depthMap);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderer.renderAll();
         world.tick(deltaTime, *terrain);
@@ -595,9 +682,9 @@ int main() {
             terrain->terrainShader.setVec3("lightDir", lightPos);
             terrain->terrainShader.setVec3("lightColor", glm::vec3(1.0f));
             terrain->terrainShader.setVec3("viewPos", camera->position);
-            terrain->terrainShader.setMat4("model", glm::translate(glm::mat4(1.0), terrain->terposition));
             terrain->terrainShader.setFloat("minHeight", terrain->minHeight);
             terrain->terrainShader.setFloat("maxHeight", terrain->maxHeight);
+
             terrain->render();
         }
         if (down > 3.0) {
@@ -621,7 +708,6 @@ int main() {
         glBindVertexArray(splineVAO);
         glDrawArrays(GL_LINE_STRIP, 0, sizeof(splinearray));
         glBindVertexArray(0);
-        //       cube2.draw();
 
         processInput(window, terrain);
         if (debug) {
@@ -652,11 +738,12 @@ void processInput(GLFWwindow *window, std::shared_ptr<Terrain> terrain) {
         world.applyForce(camera->id, camera->right * 1000.0f);
     }
 }
+
 // ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
-    auto projection = glm::perspective(glm::radians(45.0f),
-                                       (float) width / (float) height, 0.01f, 800.0f);
+    projection = glm::perspective(glm::radians(45.0f), static_cast<float>(width) / static_cast<float>(height), 0.01f,
+                                  1000.0f);
 }
 
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn) {

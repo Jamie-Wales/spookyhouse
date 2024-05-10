@@ -219,7 +219,6 @@ float Terrain::getTerPosition(int x, int z)
 {
     return getHeight(x, z);
 }
-
 void Terrain::render()
 {
     unsigned int a = 0;
@@ -234,6 +233,7 @@ void Terrain::render()
     textures[1]->Bind(GL_TEXTURE1);
     textures[2]->Bind(GL_TEXTURE2);
     textures[3]->Bind(GL_TEXTURE3);
+
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, (width - 1) * (height - 1) * 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);

@@ -20,8 +20,8 @@ uniform float gHeight1 = 30.0;
 uniform float gHeight2 = 60.0;
 uniform float gHeight3 = 80.0;
 
-uniform vec3 lightDir; 
-uniform vec3 lightColor; 
+uniform vec3 lightDir;
+uniform vec3 lightColor;
 
 
 vec4 CalcTexColor();
@@ -30,10 +30,9 @@ vec3 CalcLighting(vec3 normal, vec3 lightDir, vec3 viewDir);
 void main() {
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 lightDirection = normalize( lightDir);
-    vec4 TexColor = CalcTexColor(); 
+    vec3 lightDirection = normalize(-lightDir);
+    vec4 TexColor = CalcTexColor();
     vec3 lighting = CalcLighting(norm, lightDirection, viewDir);
-
     FragColor = TexColor * vec4(lighting, 1.0);
 
 }
@@ -55,7 +54,7 @@ vec4 CalcTexColor() {
 
 vec3 CalcLighting(vec3 normal, vec3 lightDirection, vec3 viewDirection) {
     float diff = max(dot(normal, lightDirection), 0.0);
-    vec3 halfwayDir = normalize(lightDir + viewPos);  
+    vec3 halfwayDir = normalize(lightDir + viewPos);
     float spec = pow(max(dot(normal, halfwayDir), 0.0), 16.0);
     return (diff * lightColor + spec * lightColor + lightColor*0.125);
 }
