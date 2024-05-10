@@ -7,14 +7,15 @@
 #include <initializer_list>
 #include <memory>
 #include <unordered_map>
+#include <utility>
 
 class Renderer {
 private:
-    std::unordered_map<unsigned int, std::unordered_map<int, std::shared_ptr<Model> > > renderQueue;
-    std::unordered_map<unsigned int, std::shared_ptr<Shader> > shaders;
-    glm::mat4 &projection;
+    std::unordered_map<unsigned int, std::unordered_map<int, std::shared_ptr<Model>>> renderQueue;
+    std::unordered_map<unsigned int, std::shared_ptr<Shader>> shaders;
+    glm::mat4& projection;
     glm::mat4 cameraMatrix;
-    Terrain &terrain;
+    Terrain& terrain;
 
 public:
     std::vector<glm::vec3> pointLightPositions = {
@@ -25,24 +26,30 @@ public:
     std::shared_ptr<Camera> cam;
     glm::mat4 lightSpaceMatrix;
 
-    Renderer(glm::mat4 projection, std::shared_ptr<Camera> cam, Terrain &terrain)
-        : projection(projection), cam(cam), terrain(terrain) {
+    Renderer(glm::mat4 projection, std::shared_ptr<Camera> cam, Terrain& terrain)
+        : projection(projection)
+        , cam(std::move(cam))
+        , terrain(terrain)
+    {
         lightPos = glm::vec3(-10.0f, 100.0f, -10.0f);
     }
 
-    void enqueue(const Shader &shader, std::initializer_list<std::shared_ptr<Model> > model) {
-        for (auto &m: model) {
+    void enqueue(const Shader& shader, std::initializer_list<std::shared_ptr<Model>> model)
+    {
+        for (auto& m : model) {
             renderQueue[shader.ID][m->id] = m;
             shaders[shader.ID] = std::make_shared<Shader>(shader);
         }
     }
 
-    void enqueue(const Shader &shader, std::shared_ptr<Model> model) {
+    void enqueue(const Shader& shader, const std::shared_ptr<Model>& model)
+    {
         renderQueue[shader.ID][model->id] = model;
         shaders[shader.ID] = std::make_shared<Shader>(shader);
     }
 
-    void lightingShader(Shader &lightingShader) {
+    void lightingShader(Shader& lightingShader)
+    {
         lightingShader.setVec3("lightPos", lightPos);
         lightingShader.setVec3("viewPos", cam->position);
         lightingShader.setFloat("material.shininess", 300.0f);
@@ -72,32 +79,37 @@ public:
         lightingShader.setFloat("pointLights[1].quadratic", 0.032f);
     }
 
-    void addModel(int shaderId, std::shared_ptr<Model> model) {
+    void addModel(int shaderId, const std::shared_ptr<Model>& model)
+    {
         renderQueue[shaderId][model->id] = model;
     }
 
-    void removeModel(int shaderId, std::shared_ptr<Model> model) {
+    void removeModel(unsigned int shaderId, const std::shared_ptr<Model>& model)
+    {
         renderQueue[shaderId].erase(model->id);
     }
 
-    void renderShadowMap(Shader &shader) {
-        for (auto &[key, value]: renderQueue) {
-            for (auto [key, modelPtr]: value) {
+    void renderShadowMap(Shader& shader)
+    {
+        for (auto& [key, value] : renderQueue) {
+            for (auto [key, modelPtr] : value) {
 
-                if (modelPtr->isInstanced) continue;
-                glm::mat4 model = glm::mat4(1.0f);
+                if (modelPtr->isInstanced)
+                    continue;
+                auto model = glm::mat4(1.0f);
                 model = glm::translate(model, modelPtr->position);
                 model = glm::rotate(model, glm::radians(modelPtr->yaw), glm::vec3(0, 1, 0));
                 model = glm::rotate(model, glm::radians(modelPtr->pitch), glm::vec3(1, 0, 0));
                 model = glm::rotate(model, glm::radians(modelPtr->roll), glm::vec3(0, 0, 1));
                 shader.setMat4("model", model);
-                    modelPtr->draw(shader);
+                modelPtr->draw(shader);
             }
         }
     }
 
-    void renderAll() {
-        for (auto &[key, value]: renderQueue) {
+    void renderAll()
+    {
+        for (auto& [key, value] : renderQueue) {
             auto shader = shaders.at(key);
             shader->use();
 
@@ -105,27 +117,27 @@ public:
             shader->setMat4("projection", projection);
             shader->setMat4("view", cam->getCameraView());
             shader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
-
-            for (auto [key, modelPtr]: value) {
-                glm::mat4 model = glm::mat4(1.0f);
-                model = glm::translate(model, modelPtr->position);
-                model = glm::rotate(model, glm::radians(modelPtr->yaw), glm::vec3(0, 1, 0));
-                model = glm::rotate(model, glm::radians(modelPtr->pitch), glm::vec3(1, 0, 0));
-                model = glm::rotate(model, glm::radians(modelPtr->roll), glm::vec3(0, 0, 1));
-                shader->setMat4("model", model);
-
+            for (auto [key, modelPtr] : value) {
                 if (modelPtr->isInstanced) {
+                    shader->setBool("isInstanced", true);
                     modelPtr->drawInstanced(*shader);
                 } else {
-                    shader->setInt("shadowMap", 2);
+                    shader->setBool("isInstanced", false);
+                    auto model = glm::mat4(1.0f);
+                    model = glm::translate(model, modelPtr->position);
+                    model = glm::rotate(model, glm::radians(modelPtr->yaw), glm::vec3(0, 1, 0));
+                    model = glm::rotate(model, glm::radians(modelPtr->pitch), glm::vec3(1, 0, 0));
+                    model = glm::rotate(model, glm::radians(modelPtr->roll), glm::vec3(0, 0, 1));
+                    shader->setMat4("model", model);
                     modelPtr->draw(*shader);
                 }
             }
         }
     }
 
-    void clear() {
-        for (auto &[key, value]: renderQueue) {
+    void clear()
+    {
+        for (auto& [key, value] : renderQueue) {
             value.clear();
         }
         renderQueue.clear();

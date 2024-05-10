@@ -100,7 +100,7 @@ public:
             shader.setInt("texture_diffuse1", 0);
             glBindVertexArray(this->meshes[i].VAO);
             glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(this->meshes[i].indices.size()),
-                GL_UNSIGNED_INT, 0, instanceAmount);
+                GL_UNSIGNED_INT, nullptr, instanceAmount);
             glBindVertexArray(0);
         }
     }
@@ -126,8 +126,8 @@ public:
 
     void draw(Shader& shader)
     {
-        for (unsigned int i = 0; i < meshes.size(); i++)
-            meshes[i].draw(shader);
+        for (auto& mesh : meshes)
+            mesh.draw(shader);
     }
     glm::vec3& getPosition() { return position; }
     void setPosition(glm::vec3 position) { this->position = position; }
@@ -203,7 +203,7 @@ private:
         textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
         std::vector<texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-        return Mesh(vertices, indices, textures, mesh->mAABB, this->pitch, this->yaw, this->roll, this->position);
+        return { vertices, indices, textures, mesh->mAABB, this->pitch, this->yaw, this->roll, this->position };
     }
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet.
@@ -216,9 +216,9 @@ private:
             mat->GetTexture(type, i, &str);
             // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
             bool skip = false;
-            for (unsigned int j = 0; j < textures_loaded.size(); j++) {
-                if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0) {
-                    textures.push_back(textures_loaded[j]);
+            for (auto& j : textures_loaded) {
+                if (std::strcmp(j.path.data(), str.C_Str()) == 0) {
+                    textures.push_back(j);
                     skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
                     break;
                 }
