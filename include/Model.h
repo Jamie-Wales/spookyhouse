@@ -39,6 +39,7 @@ public:
     float pitch = 0;
     float yaw = 0;
 
+
     int id;
     float scale = 1.0f;
     float roll = 0;

@@ -89,12 +89,21 @@ public:
         object.mass = 1.0;
         object.model = nullptr;
         object.camera = camera;
-        object.gravity = 0.0f;
+        object.gravity = GRAVITY;
         object.isTrigger = isTrigger;
         object.isDynamic = isDynamic;
         object.isCamera = true;
         objects[camera->id] = std::make_shared<Object>(object);
         collider.addCamera(camera);
+    }
+
+    void cameraIsDynamic(unsigned int cameraid)
+    {
+        for (auto& [id, object] : objects) {
+            if (id == cameraid) {
+                object->isDynamic = !object->isDynamic;
+            }
+        }
     }
 
     void removeObject(const std::shared_ptr<Object>& object)
@@ -162,6 +171,10 @@ public:
         }
         for (auto& [id, object] : objects) {
             if (object->isDynamic) {
+
+                if (object->isCamera) {
+                    std::cout << object->gravity << std::endl;
+                }
                 if (object->gravity > 0) {
                     object->force += object->mass * object->gravity;
                 }
@@ -170,12 +183,12 @@ public:
                 object->velocity *= DAMPENING;
                 object->position += object->velocity * dt;
                 if (object->isCamera && object->camera->firstPerson) {
-                    if (object->position.y != -terrain.getTerPosition(object->position.x, object->position.z) + 20.0f) {
-                        object->position.y = glm::mix(object->position.y,
-                            -terrain.getTerPosition(
-                                object->position.x, object->position.z)
-                                + 20.0f,
-                            0.1f);
+                    if (object->position.y < -terrain.getTerPosition(object->position.x, object->position.z) + 20.0f) {
+                        //     object->position.y = glm::mix(object->position.y,
+                        //        -terrain.getTerPosition(
+                        //           object->position.x, object->position.z)
+                        //          + 20.0f,
+                        //     0.1f);
                     }
                 }
                 if (object->position.y < -terrain.GetHeightInterpolated(object->position.x, object->position.z)) {
@@ -189,28 +202,22 @@ public:
             std::vector<BroadCollision> broadCollisions;
             if (!object->isCamera) {
 
-                if (object->model->boundingbox.pitch != object->model->pitch || object->model->boundingbox.yaw != object->model->yaw) {
-
+                if (object->model->boundingbox.pitch != object->model->pitch || object->model->boundingbox.yaw != object->model->yaw || object->model->position != object->position) {
                     object->model->boundingbox.pitch = object->model->pitch;
                     object->model->boundingbox.yaw = object->model->yaw;
                     object->model->boundingbox.roll = object->model->roll;
                     object->model->boundingbox.updateRotation();
-                    object->model->boundingbox.updateAABB();
-                }
-                if (object->model->position != object->position) {
+
                     object->model->boundingbox.translate(
                         object->position - object->model->boundingbox.position);
                     object->model->boundingbox.updateAABB();
                 }
             } else {
-                if (object->camera->boundingBox.pitch != object->camera->options.pitch || object->camera->boundingBox.yaw != object->camera->options.yaw) {
+                if (object->camera->boundingBox.pitch != object->camera->options.pitch || object->camera->boundingBox.yaw != object->camera->options.yaw || object->camera->position != object->camera->boundingBox.position) {
                     object->camera->boundingBox.pitch = object->camera->options.pitch;
                     object->camera->boundingBox.yaw = object->camera->options.yaw;
                     object->camera->boundingBox.roll = 0.0f;
                     object->camera->boundingBox.updateRotation();
-                    object->camera->boundingBox.updateAABB();
-                }
-                if (object->camera->position != object->camera->boundingBox.position) {
                     object->camera->boundingBox.translate(
                         object->camera->position - object->camera->boundingBox.position);
                     object->camera->boundingBox.updateAABB();

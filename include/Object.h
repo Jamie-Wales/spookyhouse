@@ -40,6 +40,7 @@ public:
         this->isTrigger = object->isTrigger;
         this->isCamera = object->isCamera;
         this->isStatic = object->isStatic;
+        this->gravity = object->gravity;
     }
     Object(Object& object)
     {
@@ -53,16 +54,19 @@ public:
         this->isTrigger = object.isTrigger;
         this->isCamera = object.isCamera;
         this->isStatic = object.isStatic;
+        this->gravity = object.gravity;
     }
 
     glm::vec3 position, velocity, force;
     float mass = 1.0;
+
     std::shared_ptr<Model> model;
     std::shared_ptr<Camera> camera;
     bool isDynamic;
     bool isTrigger;
     bool isCamera;
-    float gravity = 0.0;
+    float gravity = -9.8f;
+    ;
     bool isStatic;
 };
 

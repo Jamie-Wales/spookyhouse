@@ -1,8 +1,8 @@
 #ifndef INCLUDE_UTILS_SPLINE_H_
 #define INCLUDE_UTILS_SPLINE_H_
 
-#include "glm/glm.hpp"
 #include <vector>
+#include <numeric>
 
 float getT(float t, float alpha, const glm::vec3& p0, const glm::vec3& p1)
 {
@@ -45,7 +45,7 @@ struct CubicSpline {
     std::vector<glm::vec3> m_points;
     std::vector<std::vector<glm::vec3>> m_coeffs;
     std::vector<float> m_lengths;
-
+          float totalLength;
     void InitializeSpline() {
         int n = m_points.size() - 1;
         std::vector<glm::vec3> a(m_points.size(), glm::vec3(0.0f)); // Initialize with zeros
@@ -93,6 +93,8 @@ struct CubicSpline {
 
             for (int k = 0; k < m_points.size() - 1; k++)
                 m_lengths[k] = Integrate(k, 1);
+
+            totalLength = std::accumulate(m_lengths.begin(), m_lengths.end(), 0.0f);
         }
     }
     glm::vec3 SplineAtTime(float t)
@@ -138,21 +140,24 @@ struct CubicSpline {
         return XI;
     }
 
-    glm::vec3 ConstVelocitySplineAtTime(float t)
-    {
+
+    glm::vec3 ConstVelocitySplineAtTime(float t) {
+        float normalizedTime = fmod(t, totalLength);
         int spline = 0;
-        while (t > m_lengths[spline] && spline < m_points.size()) {
-            t -= m_lengths[spline];
+        while (normalizedTime > m_lengths[spline] && spline < static_cast<int>(m_points.size()) - 1) {
+            normalizedTime -= m_lengths[spline];
             spline++;
         }
 
-        float s = t / m_lengths[spline]; // Initial guess
+        float s = normalizedTime / m_lengths[spline]; // Initial guess
 
-        for (int i = 0; i < 6; i++) // Perform several Newton-Raphson iterations
-            s -= (Integrate(spline, s) - t) / ArcLengthIntegrand(spline, s);
+        for (int i = 0; i < 6; i++) { // Perform several Newton-Raphson iterations
+            s -= (Integrate(spline, s) - normalizedTime) / ArcLengthIntegrand(spline, s);
+        }
 
         return SplineAtTime(static_cast<float>(spline) + s);
     }
+
 };
 
 class Spline {

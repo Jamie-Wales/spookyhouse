@@ -10,6 +10,7 @@ public:
         GUN,
         FLYING,
         TORCH,
+        LADDER,
     };
     State state = State::IDLE;
     bool changed = false;
@@ -24,6 +25,9 @@ public:
     std::shared_ptr<AnimationCycle> fireScope;
     std::shared_ptr<Model> torch;
     bool isShooting = false;
+    bool torchOn = false;
+    bool gunOn = false;
+    bool isLadder = false;
 
     PlayerState(std::shared_ptr<Model>& left, std::shared_ptr<Model>& right, const std::shared_ptr<Model>& gun, const std::shared_ptr<Model>& scope, std::shared_ptr<Model>& torch)
         : left(left)

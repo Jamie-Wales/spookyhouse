@@ -1,9 +1,7 @@
 #include "../imgui/backends/imgui_impl_glfw.h"
 #include "../imgui/backends/imgui_impl_opengl3.h"
-#include "Animator.h"
 #include "Camera.h"
 #include "CameraHolder.h"
-#include "Cube.h"
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include "Instance.h"
@@ -115,57 +113,6 @@ YawPitch calculateYawPitch(const glm::vec3& currentPosition, const glm::vec3& ta
     return { yaw, pitch };
 }
 
-void bindLightCube(unsigned int& VAO, unsigned int& VBO)
-{
-    float vertices[] = {
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
-        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
-        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
-        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
-
-        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-        0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f
-    };
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-}
-
 void bindShadowFramebuffer(unsigned int framebuffer, unsigned int shadowWidth, unsigned int shadowHeight)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -207,13 +154,12 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 
 void processInput(GLFWwindow* window, const std::shared_ptr<Terrain>& terrain);
 
-float height = 2000;
+int height;
 CameraHolder cameraHolder;
 std::shared_ptr<Camera> camera;
-float width = 3080;
+int width;
 int amount = 5000;
-glm::mat4 projection = glm::perspective(glm::radians(45.0f),
-    width / height, 0.1f, 1000.0f);
+glm::mat4 projection;
 float deltaTime = 0;
 float lastFrame = 0.0f;
 bool firstMouse = true;
@@ -261,6 +207,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             case 3:
                 insideCart = !insideCart;
                 break;
+            case 65:
+                player.state = player.state == PlayerState::State::LADDER ? PlayerState::State::IDLE
+                                                                          : PlayerState::State::LADDER;
+                player.changed = true;
+                break;
             default:
                 break;
             }
@@ -277,37 +228,44 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         debug = !debug;
     }
     if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN && player.state != PlayerState::State::TORCH)
+        if (player.state == PlayerState::State::IDLE)
             player.state = PlayerState::State::RUNNING;
     } else if (key == GLFW_KEY_W && action == GLFW_RELEASE) {
-        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN && player.state != PlayerState::State::TORCH)
+        if (player.state == PlayerState::State::RUNNING)
             player.state = PlayerState::State::IDLE;
     } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN && player.state != PlayerState::State::TORCH)
+        if (player.state == PlayerState::State::IDLE)
             player.state = PlayerState::State::RUNNING;
     } else if (key == GLFW_KEY_S && action == GLFW_RELEASE) {
-        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN && player.state != PlayerState::State::TORCH)
+        if (player.state == PlayerState::State::RUNNING)
             player.state = PlayerState::State::IDLE;
     } else if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN && player.state != PlayerState::State::TORCH)
+        if (player.state == PlayerState::State::IDLE)
             player.state = PlayerState::State::RUNNING;
     } else if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
-        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN && player.state != PlayerState::State::TORCH)
+        if (player.state == PlayerState::State::RUNNING)
             player.state = PlayerState::State::IDLE;
     } else if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN && player.state != PlayerState::State::TORCH)
+        if (player.state == PlayerState::State::IDLE)
             player.state = PlayerState::State::RUNNING;
     } else if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
-        if (player.state != PlayerState::State::FLYING && player.state != PlayerState::State::GUN & player.state != PlayerState::State::TORCH)
+        if (player.state == PlayerState::State::RUNNING)
             player.state = PlayerState::State::IDLE;
     }
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && player.state == PlayerState::State::GUN) {
-        player.shoot();
-        world.fireBullet(camera->position, camera->front, 10.0f);
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+        switch (player.state) {
+        case PlayerState::State::GUN:
+            player.shoot();
+            world.fireBullet(camera->position, camera->front, 10.0f);
+            break;
+        case PlayerState::State::TORCH:
+            player.torchOn = !player.torchOn;
+            break;
+        }
     }
 }
 
@@ -320,7 +278,14 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+    width = mode->width;
+    height = mode->height;
     GLFWwindow* window = glfwCreateWindow(width, height, "Spooky House", nullptr, nullptr);
+
+    projection = glm::perspective(glm::radians(45.0f), static_cast<float>(width) / static_cast<float>(height), 0.01f,
+        1000.0f);
     if (window == nullptr)
         return 1;
     glfwMakeContextCurrent(window);
@@ -368,8 +333,8 @@ int main()
     auto right = std::make_shared<Model>("../assets/player/nright.obj", glm::mat4(1.0f), glm::vec3(0.0), 6, 0.0, 10.0,
         0.0);
 
-    auto torch = std::make_shared<Model>("../assets/player/torch.obj", glm::mat4(1.0f), glm::vec3(0.0), 5, 0.0, 0.0, 0.0);
-    // auto hallway = std::make_shared<Model>("../assets/dungeon/dungeon.obj", glm::mat4(1.0), glm::vec3(0.0), 7, 0.0, 0.0, 0.0);
+    auto torch = std::make_shared<Model>("../assets/player/torch.obj", glm::mat4(1.0f), glm::vec3(0.0), 5, 0.0, 0.0,
+        0.0);
     std::vector<std::vector<glm::mat4>> translations { 5 };
     world = physics::PhysicsWorld();
     Terrain ter {
@@ -394,12 +359,18 @@ int main()
     auto house = std::make_shared<Model>("../assets/house/hh.obj", glm::mat4(1.0f),
         glm::vec3(300.0, platform->position.y + 20.0f, 234),
         60, 90, 90, 0.0);
-    auto lampOne = std::make_shared<Model>("../assets/lamps/lampOne.obj", glm::mat4(1.0f), glm::vec3(416.0f, platform->position.y - 7.0f, 100.0f), 301, 0.0, 0.0,
+    auto lampOne = std::make_shared<Model>("../assets/lamps/lampOne.obj", glm::mat4(1.0f),
+        glm::vec3(416.0f, platform->position.y - 7.0f, 100.0f), 301, 0.0, 0.0,
         0.0);
-    auto lampTwo = std::make_shared<Model>("../assets/lamps/lampTwo.obj", glm::mat4(1.0f), glm::vec3(174.0f, platform->position.y - 7.0f, 324.0f), 302, 0.0, 0.0,
+    auto lampTwo = std::make_shared<Model>("../assets/lamps/lampTwo.obj", glm::mat4(1.0f),
+        glm::vec3(174.0f, platform->position.y - 7.0f, 324.0f), 302, 0.0, 0.0,
         0.0);
-    auto lampThree = std::make_shared<Model>("../assets/lamps/lampThree.obj", glm::mat4(1.0f), glm::vec3(217.0f, platform->position.y - 7.0f, 88.0f), 303, 0.0,
+    auto lampThree = std::make_shared<Model>("../assets/lamps/lampThree.obj", glm::mat4(1.0f),
+        glm::vec3(217.0f, platform->position.y - 7.0f, 88.0f), 303, 0.0,
         0.0, 0.0);
+
+    auto ladder = std::make_shared<Model>("../assets/house/ladder.obj", glm::mat4(1.0f),
+        glm::vec3(130, terrain->GetHeightInterpolated(130, 199) - 20.0f, 199), 65, 0.0, 90, 0.0f);
 
     initMultiTree(amount, 6, 250, 560.0, translations, house->position, *terrain);
     auto track = std::make_shared<Model>("../assets/track/track.obj", glm::mat4(1.0f),
@@ -421,42 +392,42 @@ int main()
     world.addModel(house, false, false, true);
     world.addModel(cart, false, true, true);
     world.addModel(gun, false, true, true);
+    world.addModel(ladder, false, true, false);
     // world.addModel(house, false, false, true);
-
-    glm::vec3 s1(207.5, track->position.y, 131.7);
-    glm::vec3 s2 = glm::vec3(243.39, track->position.y + 4.2, 130.45); // Added in the gradual rise between s1 and s2
-    glm::vec3 s3(269.50, track->position.y + 8.7, 130.56);
-    glm::vec3 s4 = glm::vec3(286.3, track->position.y + 11.2, 131.205); // Enhances the gentle rise between s2 and s3
-    glm::vec3 s5(300.36, track->position.y + 12.9, 132.09);
-    glm::vec3 s6 = glm::vec3(314.73, track->position.y + 12.6, 134.285); // Smooths the transition before reaching s4
-    glm::vec3 s7(322.30, track->position.y + 12.2, 135.42);
-    glm::vec3 s8 = glm::vec3(339.20, track->position.y + 7.3, 137.61); // Midway through the drop from s4 to s5
-    glm::vec3 s9(351.31, track->position.y + 6.2, 138.90);
-    glm::vec3 s10 = glm::vec3(383.05, track->position.y - 3.2, 145.75); // Deepening the curve before leveling at s6
-    glm::vec3 s11(403.6, track->position.y - 2.7, 153.0);
-    glm::vec3 s12 = glm::vec3(414.02, track->position.y - 3.5, 159.2); // Approach the peak near s7
-    glm::vec3 s13(420.60, track->position.y - 1.5, 163.4);
-    glm::vec3 s14 = glm::vec3(428.02, track->position.y + 1.5, 177.8); // Just before the steep drop at s8
-    glm::vec3 s15(427.44, track->position.y + 3, 196.20);
-    glm::vec3 s101 = glm::vec3(422.15, track->position.y + 1.5, 214.0);
-    glm::vec3 s16 = glm::vec3(404.02, track->position.y, 236.95); // On the descent towards s9
-    glm::vec3 s17(370.64, track->position.y - 1, 231.70);
-    glm::vec3 s18 = glm::vec3(350.82, track->position.y - 1, 230.85); // Transition between s9 and s10
-    glm::vec3 s19(331.0, track->position.y - 1, 230.0);
-    glm::vec3 s20 = glm::vec3(299.55, track->position.y, 228.15);
-    glm::vec3 s21(256.10, track->position.y, 222.3);
-    glm::vec3 s22 = glm::vec3(226.205, track->position.y, 215.575);
-    glm::vec3 s23(181.02, track->position.y + 5.5, 198.14);
-    glm::vec3 s24 = glm::vec3(174.75, track->position.y + 18.0, 168.785);
-    glm::vec3 s25(180.0, track->position.y + 13.0, 149.72);
-    glm::vec3 s26(190.0, track->position.y + 3.3, 138.7);
-    glm::vec3 s27(207.5, track->position.y, 131.7);
-
+    glm::vec3 s1(207.5f, track->position.y + 2, 133.0f);
+    glm::vec3 s2(243.39f, track->position.y + 5.7f, 130.45f); // Added in the gradual rise between s1 and s2
+    glm::vec3 s3(269.50f, track->position.y + 10.5f, 130.56f);
+    glm::vec3 s4(286.3f, track->position.y + 12.9f, 131.205f); // Enhances the gentle rise between s2 and s3
+    glm::vec3 s5(300.36f, track->position.y + 14.4f, 132.09f);
+    glm::vec3 s6(314.73f, track->position.y + 14.6f, 134.285f); // Smooths the transition before reaching s4
+    glm::vec3 s7(322.30f, track->position.y + 13.8f, 135.42f);
+    glm::vec3 s8(339.20f, track->position.y + 11.0f, 137.61f); // Midway through the drop from s4 to s5
+    glm::vec3 s9(351.31f, track->position.y + 8.5f, 138.90f);
+    glm::vec3 s10(383.05f, track->position.y - 0.9f, 145.75f); // Deepening the curve before leveling at s6
+    glm::vec3 s11(403.6f, track->position.y - 3.8f, 153.0f);
+    glm::vec3 s12(414.02f, track->position.y - 3.9f, 159.2f); // Approach the peak near s7
+    glm::vec3 s13(420.60f, track->position.y - 0.5, 163.4f);
+    glm::vec3 s14(428.02f, track->position.y + 3.5f, 177.8f); // Just before the steep drop at s8
+    glm::vec3 s15(427.44f, track->position.y + 5.0f, 196.20f);
+    glm::vec3 s16(422.15f, track->position.y + 2.0f, 214.0f);
+    glm::vec3 s17(403.02f, track->position.y, 225.95f); // On the descent towards s9
+    glm::vec3 s18(370.64f, track->position.y - 1.0f, 231.70f);
+    glm::vec3 s19(350.82f, track->position.y - 1.0f, 230.85f); // Transition between s9 and s10
+    glm::vec3 s20(331.0f, track->position.y - 1.0f, 230.0f);
+    glm::vec3 s21(299.55f, track->position.y + 1.0, 228.15f);
+    glm::vec3 s22(256.10f, track->position.y + 1.0, 222.3f);
+    glm::vec3 s23(226.205f, track->position.y + 1.0, 215.575f);
+    glm::vec3 s24(181.02f, track->position.y + 8.2f, 198.14f);
+    glm::vec3 s25(174.75f, track->position.y + 19.0f, 168.785f);
+    glm::vec3 s26(177.0f, track->position.y + 17.0f, 158.72f);
+    glm::vec3 s27(183.0f, track->position.y + 9.2f, 146.0f);
+    glm::vec3 s28(190.0f, track->position.y + 5.0f, 140.0f);
+    glm::vec3 s29(199.5f, track->position.y + 1.7f, 134.86f);
+    glm::vec3 s30(207.5f, track->position.y + 2.0, 133.0f);
     std::vector<glm::vec3> splinearray {
-        s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s101, s16, s17, s18, s19, s20, s21, s22,
-        s23, s24, s25, s26, s27
+        s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19, s20, s21, s22,
+        s23, s24, s25, s26, s27, s28, s29, s30
     };
-
     cSpline.m_points = splinearray;
     cSpline.InitializeSpline();
 
@@ -470,7 +441,7 @@ int main()
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)nullptr);
     Renderer renderer { projection, camera, *terrain };
-    renderer.enqueue(shader, { track, house, cart, left, right, gun, scope, platform, treeOne, treeTwo, treeFour, treeFive, treeSix, lampOne, lampTwo, lampThree });
+    renderer.enqueue(shader, { track, house, cart, left, right, gun, scope, platform, treeOne, treeTwo, treeFour, treeFive, treeSix, lampOne, lampTwo, lampThree, ladder });
     renderer.addLampPointLight(lampOne->position);
     renderer.addLampPointLight(lampTwo->position);
     renderer.addLampPointLight(lampThree->position);
@@ -515,7 +486,7 @@ int main()
         camera = cameraHolder.getCam();
         renderer.cam = camera;
         renderer.torchPos = player.torch->position;
-
+        renderer.torch = player.torchOn;
         /*
         int randAmount = 80;
         if (renderer.lightning) {
@@ -556,6 +527,11 @@ int main()
             renderer.removeModel(shader.ID, left);
             renderer.removeModel(shader.ID, right);
             renderer.addModel(shader.ID, torch);
+            player.changed = false;
+        } else if (player.state == PlayerState::State::LADDER && player.changed) {
+            renderer.removeModel(shader.ID, left);
+            renderer.removeModel(shader.ID, right);
+            renderer.removeModel(shader.ID, torch);
             player.changed = false;
         }
         auto currentFrameTime = static_cast<float>(glfwGetTime());
@@ -664,6 +640,7 @@ int main()
 
         // 1. render depth of scene to texture (from light's perspective)
         // --------------------------------------------------------------
+
         depth.use();
         depth.setMat4("lightSpaceMatrix", lightSpaceMatrix);
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
@@ -672,7 +649,9 @@ int main()
         glActiveTexture(GL_TEXTURE2);
 
         glCullFace(GL_FRONT);
+
         renderer.renderShadowMap(depth);
+
         if (renderer.torch) {
             lightView = glm::lookAt(camera->position, glm::vec3(0.0f, 0.0f, 0.0f),
                 glm::vec3(0.0f, 1.0f, 0.0f));
@@ -685,11 +664,8 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderer.renderAll();
         world.tick(deltaTime, *terrain);
-        float totalDuration = 10.0f;
         if (insideCart) {
-            float currentTime = fmod(currentFrameTime, totalDuration);
-            float normalizedTime = (currentTime / totalDuration) * (cSpline.m_points.size() - 1);
-            auto newPos = cSpline.ConstVelocitySplineAtTime(currentTime * 60);
+            auto newPos = cSpline.ConstVelocitySplineAtTime(currentFrameTime * 60);
             auto pitch = calculateYawPitch(cart->position, newPos);
             auto pitchDif = cart->pitch - pitch.pitch;
             auto yawDif = cart->yaw - pitch.yaw;
@@ -705,9 +681,10 @@ int main()
             } else if (camera->options.pitch < -89.0f) {
                 camera->options.pitch = -89.0f;
             }
-            camera->position.y += 5.0f;
-            camera->position.x -= 0.5f;
+
             camera->update();
+            camera->position.y += 5.0f;
+            world.updatePosition(camera->id, camera->position);
         }
         GLenum err;
         while ((err = glGetError()) != GL_NO_ERROR) {
@@ -758,20 +735,40 @@ void processInput(GLFWwindow* window, const std::shared_ptr<Terrain>& terrain)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
-    } else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        world.applyForce(camera->id, camera->front * 1000.0f);
+    }
+
+    glm::vec3 forward = camera->front;
+    switch (player.state) {
+    case PlayerState::State::IDLE:
+    case PlayerState::State::RUNNING:
+        forward = glm::vec3(forward.x, 0.0, forward.z);
+        break;
+    case PlayerState::State::FLYING:
+        break;
+    case PlayerState::State::LADDER:
+        forward = glm::vec3(0.0, 1.0, 0.0);
+        break;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        world.applyForce(camera->id, forward * 1000.0f);
     } else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        world.applyForce(camera->id, -camera->front * 1000.0f);
+        world.applyForce(camera->id, -forward * 1000.0f);
     } else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        if (player.state == PlayerState::State::LADDER)
+            return;
         world.applyForce(camera->id, -camera->right * 1000.0f);
     } else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        if (player.state == PlayerState::State::LADDER)
+            return;
         world.applyForce(camera->id, camera->right * 1000.0f);
     }
 }
-
 // ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void framebuffer_size_callback(GLFWwindow* window, int nwidth, int nheight)
 {
+    height = nheight;
+    width = nwidth;
     glViewport(0, 0, width, height);
     projection = glm::perspective(glm::radians(45.0f), static_cast<float>(width) / static_cast<float>(height), 0.01f,
         1000.0f);

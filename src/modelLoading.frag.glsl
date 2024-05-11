@@ -59,22 +59,6 @@ uniform DirLight dirLight;
 
 void main()
 {
- /*   vec3 color = texture(texture_diffuse1, fs_in.TexCoords).rgb;
-    vec3 normal = normalize(fs_in.Normal);
-    vec3 lightColor = vec3(0.3);
-    vec3 ambient = texture(texture_specular1, fs_in.TexCoords).rgb * 0.3 * lightColor;
-    vec3 lightDir = normalize(lightPos - fs_in.FragPos);
-    float diff = max(dot(lightDir, normal), 0.0);
-    vec3 diffuse = diff * lightColor;
-    vec3 viewDir = normalize(viewPos - fs_in.FragPos);
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = 0.0;
-    vec3 halfwayDir = normalize(lightDir + viewDir);
-    spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
-    vec3 specular = spec * lightColor;
-    float shadow = ShadowCalculation(fs_in.FragPosLightSpace);
-    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;
-    */
 
     vec3 normal = normalize(fs_in.Normal);
     vec3 viewDir = normalize(viewPos - fs_in.FragPos);
@@ -151,8 +135,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     ambient *= attenuation;
     diffuse *= attenuation;
     specular *= attenuation;
-    float shadow = ShadowCalculation(fs_in.FragPosLightSpace);
-    return (ambient + (1.0 - shadow) * (diffuse + specular));
+    return (ambient + diffuse + specular);
 }
 
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
@@ -172,7 +155,6 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     ambient *= attenuation * intensity;
     diffuse *= attenuation * intensity;
     specular *= attenuation * intensity;
-    float shadow = ShadowCalculation(fs_in.FragPosLightSpace);
-    return (ambient + (1.0 - shadow) * (diffuse + specular));
+    return (ambient + diffuse + specular);
 }
 

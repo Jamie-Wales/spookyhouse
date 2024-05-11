@@ -23,7 +23,7 @@ public:
     glm::vec3 lightPos;
     std::shared_ptr<Camera> cam;
     glm::mat4 lightSpaceMatrix;
-    bool torch = true;
+    bool torch = false;
     glm::vec3 torchPos = glm::vec3(0.0f, 0.0f, 0.0f);
 
     Renderer(glm::mat4 projection, std::shared_ptr<Camera> cam, Terrain& terrain)
