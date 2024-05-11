@@ -31,22 +31,34 @@ public:
     {
     }
 
+    BoundingBox(BoundingBox& other)
+        : position(other.position)
+        , min(other.min)
+        , max(other.max)
+        , pitch(other.pitch)
+        , yaw(other.yaw)
+        , roll(other.roll)
+        , rotation(other.rotation)
+        , extents(other.extents)
+    {
+        for (int i = 0; i < 3; ++i) {
+            axis[i] = other.axis[i];
+        }
+    }
 
-    bool intersects(const BoundingBox &other, float scale = 0.0f) const {
+    [[nodiscard]] bool intersects(const BoundingBox& other, float scale = 0.0f) const
+    {
         glm::vec3 scaledMin = min - glm::vec3(scale);
         glm::vec3 scaledMax = max + glm::vec3(scale);
 
         glm::vec3 otherScaledMin = other.min - glm::vec3(scale);
         glm::vec3 otherScaledMax = other.max + glm::vec3(scale);
 
-        return (scaledMin.x <= otherScaledMax.x && scaledMax.x >= otherScaledMin.x) &&
-               (scaledMin.y <= otherScaledMax.y && scaledMax.y >= otherScaledMin.y) &&
-               (scaledMin.z <= otherScaledMax.z && scaledMax.z >= otherScaledMin.z);
+        return (scaledMin.x <= otherScaledMax.x && scaledMax.x >= otherScaledMin.x) && (scaledMin.y <= otherScaledMax.y && scaledMax.y >= otherScaledMin.y) && (scaledMin.z <= otherScaledMax.z && scaledMax.z >= otherScaledMin.z);
     }
-      bool intersects(const glm::vec3 &point) const {
-        return (point.x >= min.x && point.x <= max.x) &&
-               (point.y >= min.y && point.y <= max.y) &&
-               (point.z >= min.z && point.z <= max.z);
+    bool intersects(const glm::vec3& point) const
+    {
+        return (point.x >= min.x && point.x <= max.x) && (point.y >= min.y && point.y <= max.y) && (point.z >= min.z && point.z <= max.z);
     }
 
     void updateRotation()

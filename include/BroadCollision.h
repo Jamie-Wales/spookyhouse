@@ -9,12 +9,9 @@ public:
     std::shared_ptr<Mesh> firstMesh;
     std::shared_ptr<Mesh> secondMesh;
     std::shared_ptr<Camera> camera;
-    BroadCollision(int modelIdA, int modelIdB, std::shared_ptr<Mesh> firstMesh, std::shared_ptr<Mesh> secondMesh, std::shared_ptr<Camera> camera)
+    BroadCollision(int modelIdA, int modelIdB)
         : modelIdA { modelIdA }
-        , modelIdB { modelIdB }
-        , firstMesh { firstMesh }
-        , secondMesh { secondMesh }
-        , camera { camera } {};
+        , modelIdB { modelIdB } {};
 };
 
 #endif // INCLUDE_INCLUDE_BROADCOLLISION_H_

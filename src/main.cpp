@@ -307,9 +307,9 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
     glEnable(GL_DEPTH_TEST);
-    Camera fly = Camera { 606 };
-    Camera fps = Camera { 101, true };
-    cameraHolder.addCamera({ std::make_shared<Camera>(fps), std::make_shared<Camera>(fly) });
+    auto fly = std::make_shared<Camera>(606);
+    auto fps = std::make_shared<Camera>( 101, true );
+    cameraHolder.addCamera({fps, fly});
     camera = cameraHolder.getCam();
     CubicSpline cSpline = CubicSpline();
 
@@ -384,11 +384,8 @@ int main()
     treeFour->initInstanced(translations[3].size(), translations[3]);
     treeFive->initInstanced(translations[4].size(), translations[4]);
     treeSix->initInstanced(translations[5].size(), translations[5]);
-    world.addCamera(camera, true, false, false);
-    cameraHolder.incrementCurrentCamera();
-    camera = cameraHolder.getCam();
-    world.addCamera(camera, true, false, false);
-    cameraHolder.incrementCurrentCamera();
+    world.addCamera(fps, true, false, false);
+    world.addCamera(fly, true, false, false);
     world.addModel(house, false, false, true);
     world.addModel(cart, false, true, true);
     world.addModel(gun, false, true, true);
@@ -549,13 +546,6 @@ int main()
                 camera->boundingBox.min.z);
             ImGui::Text("Camera bb max, X: %f Y: %f Z: %f", camera->boundingBox.max.x, camera->boundingBox.max.y,
                 camera->boundingBox.max.z);
-            for (auto& mesh : cart->meshes) {
-                ImGui::Text("house bb min, X: %f Y: %f Z: %f", mesh.boundingbox.min.x, mesh.boundingbox.min.y,
-                    mesh.boundingbox.min.z);
-                ImGui::Text("house bb max, X: %f Y: %f Z: %f", mesh.boundingbox.max.x, mesh.boundingbox.max.y,
-                    mesh.boundingbox.max.z);
-            }
-
             if (position) {
                 ImGui::Begin("Model Position Controls");
                 ImGui::Text("Adjust the position of models:");
@@ -662,8 +652,9 @@ int main()
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        //world.tick(deltaTime, *terrain);
         renderer.renderAll();
-        world.tick(deltaTime, *terrain);
         if (insideCart) {
             auto newPos = cSpline.ConstVelocitySplineAtTime(currentFrameTime * 60);
             auto pitch = calculateYawPitch(cart->position, newPos);

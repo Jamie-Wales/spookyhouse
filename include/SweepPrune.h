@@ -2,6 +2,7 @@
 #include "BroadCollision.h"
 #include "Camera.h"
 #include "Model.h"
+#include "Object.h"
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
@@ -45,6 +46,7 @@ struct sweepObject {
     std::shared_ptr<Mesh> mesh;
     std::shared_ptr<Camera> camera;
 
+    sweepObject() = default;
     sweepObject(int id, std::shared_ptr<Mesh> mesh, std::shared_ptr<Camera> camera)
         : id(id)
         , mesh(mesh)
@@ -64,7 +66,7 @@ public:
     std::vector<EndPoint> zEndPoints;
     int id = 0;
     std::unordered_map<int, std::vector<std::shared_ptr<sweepObject>>> modelToSweep;
-    std::unordered_map<int, std::shared_ptr<Model>> modToId;
+    std::unordered_map<int, std::shared_ptr<physics::Object>> modToId;
     std::unordered_map<int, std::shared_ptr<sweepObject>> sweepMap;
     std::map<std::pair<int, int>, std::set<char>> collisionMap;
     bool checked = false;
@@ -84,10 +86,6 @@ public:
         });
     }
 
-    void addModel(std::shared_ptr<Model> objectModel)
-    {
-        AddObject(objectModel->id, objectModel);
-    }
 
     void removeModel(std::shared_ptr<Model>& model)
     {
@@ -111,17 +109,15 @@ public:
         modelToSweep.erase(model->id);
     }
 
-    int AddObject(int modid, std::shared_ptr<Model>& objectModel)
+    int AddObject(std::shared_ptr<physics::Object>& objectModel)
     {
+        for (auto& mesh : objectModel->model->meshes) {
 
-        for (auto& mesh : objectModel->meshes) {
-
-            modToId[id] = objectModel;
+            modToId[objectModel->id] = objectModel;
             BoundingBox box = mesh.boundingbox;
-            sweepObject lso = sweepObject { id, std::make_shared<Mesh>(mesh), nullptr };
-            std::shared_ptr<sweepObject> so = std::make_shared<sweepObject>(lso);
+            std::shared_ptr<sweepObject> so = std::make_shared<sweepObject>( id, std::make_shared<Mesh>(mesh), nullptr );
             sweepMap[so->id] = so;
-            modelToSweep[modid].push_back(so);
+            modelToSweep[objectModel->id].push_back(so);
             xEndPoints.emplace_back((id << 1), box.min.x);
             xEndPoints.emplace_back((id << 1) | 1, box.max.x);
             yEndPoints.emplace_back((id << 1), box.min.y);
@@ -278,28 +274,54 @@ public:
         }
     }
 
-    void updateObject(std::shared_ptr<Camera> camera)
-    {
+    void updateObject(std::shared_ptr<physics::Object> camera) {
+        if (!camera->isCamera) {
+            auto& vec = modelToSweep[camera->id];
 
-        if (camera->position == glm::vec3(0.0f))
-            return;
+            for (auto& sweep : vec) {
+                sweep->mesh->boundingbox.pitch = camera->pitch;
+                sweep->mesh->boundingbox.yaw = camera->yaw;
+                sweep->mesh->boundingbox.roll = camera->roll;
+                sweep->mesh->boundingbox.position = camera->position;
+                sweep->mesh->boundingbox.updateRotation();
+                sweep->mesh->boundingbox.updateAABB();
+                /*std::cout << "debug info before update" << sweep->mesh->boundingbox.min.x << " "
+                          << sweep->mesh->boundingbox.min.y << " " << sweep->mesh->boundingbox.min.z << " "
+                          << sweep->mesh->boundingbox.max.x << " " << sweep->mesh->boundingbox.max.y << " "
+                          << sweep->mesh->boundingbox.max.z << std::endl;
+                */
+                sweep->mesh->boundingbox.translate(camera->position - sweep->mesh->boundingbox.position);
+                sweep->mesh->boundingbox.updateAABB();
+                /*std::cout << "debug info after update" << sweep->mesh->boundingbox.min.x << " "
+                          << sweep->mesh->boundingbox.min.y << " " << sweep->mesh->boundingbox.min.z << " "
+                          << sweep->mesh->boundingbox.max.x << " " << sweep->mesh->boundingbox.max.y << " "
+                          << sweep->mesh->boundingbox.max.z << std::endl;
+                */
+                sweepEndpoints(xEndPoints, 'x', sweep->id, sweep->mesh->boundingbox);
+                sweepEndpoints(yEndPoints, 'y', sweep->id, sweep->mesh->boundingbox);
+                sweepEndpoints(zEndPoints, 'z', sweep->id, sweep->mesh->boundingbox);
+            }
+        } else{
+            if (camera->position == glm::vec3(0.0f))
+                return;
 
-        auto& vec = modelToSweep[camera->id];
+            auto& vec = modelToSweep[camera->id];
 
-        for (auto& sweep : vec) {
-            BoundingBox& bb = sweep->camera->boundingBox;
-            sweepEndpoints(xEndPoints, 'x', sweep->id, bb);
-            sweepEndpoints(yEndPoints, 'y', sweep->id, bb);
-            sweepEndpoints(zEndPoints, 'z', sweep->id, bb);
+            for (auto& sweep : vec) {
+                BoundingBox& bb = sweep->camera->boundingBox;
+                sweepEndpoints(xEndPoints, 'x', sweep->id, bb);
+                sweepEndpoints(yEndPoints, 'y', sweep->id, bb);
+                sweepEndpoints(zEndPoints, 'z', sweep->id, bb);
+            }
         }
     }
 
-    int addCamera(std::shared_ptr<Camera> camera)
+    int addCamera(std::shared_ptr<physics::Object> camera)
     {
-        BoundingBox box = camera->boundingBox;
-        std::shared_ptr<sweepObject> so = std::make_shared<sweepObject>(id, nullptr, camera);
+        BoundingBox box = *camera->boundingBox;
+        std::shared_ptr<sweepObject> so = std::make_shared<sweepObject>(id, nullptr, camera->camera);
         sweepMap[id] = so;
-        modToId[so->id] = nullptr;
+        modToId[camera->id] = camera;
         modelToSweep[camera->id].push_back(so);
         xEndPoints.emplace_back((id << 1), box.min.x);
         xEndPoints.emplace_back((id << 1) | 1, box.max.x);
@@ -329,20 +351,11 @@ public:
         for (const auto& entry : collisionMap) {
             int firstId = entry.first.first;
             int secondId = entry.first.second;
-            int firstModelId = modToId[firstId] != nullptr ? modToId[firstId]->id : sweepMap[firstId]->camera->id;
-            int secondModelId = modToId[secondId] != nullptr ? modToId[secondId]->id : sweepMap[secondId]->camera->id;
+            auto  firstModelId = modToId[firstId];
+            auto secondModelId = modToId[secondId];
             if (entry.second.size() == 3 && firstId != secondId && firstModelId != secondModelId) {
                 if (sweepMap[firstId]->camera != nullptr) {
-                    trueCollisions.push_back(
-                        BroadCollision(firstModelId, secondModelId, nullptr, sweepMap[secondId]->mesh,
-                            sweepMap[firstId]->camera));
-                } else if (sweepMap[secondId]->camera != nullptr) {
-                    trueCollisions.push_back(
-                        BroadCollision(firstModelId, secondModelId, sweepMap[firstId]->mesh, nullptr,
-                            sweepMap[firstId]->camera));
-                } else {
-                    trueCollisions.push_back(BroadCollision(firstModelId, secondModelId, sweepMap[firstId]->mesh,
-                        sweepMap[secondId]->mesh, nullptr));
+                    trueCollisions.emplace_back(firstModelId->id, secondModelId->id);
                 }
             }
         }

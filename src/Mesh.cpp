@@ -17,6 +17,12 @@ Mesh::Mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std:
     this->boundingbox.updateAABB();
 }
 
+
+Mesh::Mesh(const Mesh &mesh): VAO(0), VBO(0), EBO(0) {
+    this->boundingbox = mesh.boundingbox;
+}
+
+
 void Mesh::draw(Shader& shader)
 {
 
