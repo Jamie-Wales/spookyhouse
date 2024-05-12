@@ -480,7 +480,6 @@ int main() {
             camera->update();
             player.isShooting = false;
         }
-        camera = cameraHolder.getCam();
         renderer.cam = camera;
         renderer.torchPos = player.torch->position;
         renderer.torch = player.torchOn;
@@ -642,13 +641,13 @@ int main() {
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
-        glActiveTexture(GL_TEXTURE2);
+        glActiveTexture(GL_TEXTURE4);
 
         glCullFace(GL_FRONT);
 
         renderer.renderShadowMap(depth);
         depth.setMat4("model", glm::mat4(1.0f));
-
+        terrain->renderShadow();
         if (renderer.torch) {
             lightView = glm::lookAt(camera->position, glm::vec3(0.0f, 0.0f, 0.0f),
                                     glm::vec3(0.0f, 1.0f, 0.0f));
@@ -659,6 +658,7 @@ int main() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         renderer.renderAll();
 
         world.tick(deltaTime, *terrain);
@@ -687,15 +687,13 @@ int main() {
         if (down < 0) {
             updown = false;
         }
+
         terrain->terrainShader.use();
         terrain->terrainShader.setMat4("projection", projection);
         terrain->terrainShader.setMat4("view", camera->getCameraView());
         terrain->terrainShader.setMat4("model", glm::translate(glm::mat4(1.0), terrain->terposition));
-        terrain->terrainShader.setVec3("lightDir", lightPos);
-        terrain->terrainShader.setVec3("lightColor", glm::vec3(1.0f));
-        terrain->terrainShader.setVec3("viewPos", camera->position);
-        terrain->terrainShader.setFloat("minHeight", terrain->minHeight);
-        terrain->terrainShader.setFloat("maxHeight", terrain->maxHeight);
+        terrain->terrainShader.setInt("shadowMap", 4);
+        renderer.lightingShader(terrain->terrainShader);
         terrain->render();
         basic.use();
         basic.setMat4("projection", projection);

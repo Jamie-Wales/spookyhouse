@@ -9,12 +9,14 @@ uniform mat4 projection;
 uniform mat4 model;
 uniform float minHeight;
 uniform float maxHeight;
+uniform mat4 lightSpaceMatrix;
 
 out vec4 Color;
 out vec2 Tex;
 out vec3 FragPos;
 out vec3 Normal;
 out vec3 aPos;
+out vec4 FragPosLightSpace;
 
 void main()
 {
@@ -25,6 +27,7 @@ void main()
     Color = vec4(c, c, c, 1.0);
     Tex = InTex;
     FragPos = vec3(model * vec4(Position, 1.0));
+    FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
     Normal = aNormal;
     aPos = Position;
 }
