@@ -31,7 +31,7 @@ public:
         , cam(std::move(cam))
         , terrain(terrain)
     {
-        lightPos = glm::vec3(-10.0f, -10.0f, -10.0f);
+        lightPos = glm::vec3(-10.0f, -100.0f, -10.0f);
     }
 
     void lightningSwitch()

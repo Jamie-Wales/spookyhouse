@@ -50,10 +50,11 @@ public:
         , id(id)
         , pitch(pitch)
         , yaw(yaw)
-        , roll(roll)
-
-    {
+        , roll(roll) {
         loadModel(path);
+        this->boundingbox->updateRotation();
+        this->boundingbox->translate(this->boundingbox->position - position);
+        this->boundingbox->updateAABB();
     }
 
     void initInstanced(size_t amount, std::vector<glm::mat4> trans)

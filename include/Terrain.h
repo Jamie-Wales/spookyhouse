@@ -39,6 +39,7 @@ public:
     float getWorldHeight();
     Shader terrainShader = Shader("../src/terrain.vert.glsl", "../src/terrain.frag.glsl");
     explicit Terrain(float scale, std::initializer_list<const std::string> textureFiles, float textureScale);
+    void renderShadow();
     void LoadFromFile(const std::string& filename);
     void render();
     float getHeight(int x, int z) const;

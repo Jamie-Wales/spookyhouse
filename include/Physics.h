@@ -11,14 +11,13 @@
 #include <unordered_map>
 
 #define DAMPENING 0.96f
-#define GRAVITY -9.8f
+#define GRAVITY 9.8f
 #define DECELERATION 0.95f
 #define ZERO_THRESHOLD 1e-30f
 
 namespace physics {
     class PhysicsWorld {
         std::unordered_map<int, std::shared_ptr<Object> > objects = {};
-        glm::vec3 gravity = glm::vec3(0, GRAVITY, 0);
 
     public:
         Collider collider;
@@ -44,25 +43,20 @@ namespace physics {
             return triggers;
         }
 
-        void addObject(bool isModel, std::shared_ptr<physics::Object> object) {
-            if (object->isCamera) {
-                objects[object->id] = object;
-                collider.addCamera(object);
-            } else {
-                objects[object->id] = object;
-                collider.addObject(object);
-            }
+        void addObject(std::shared_ptr<physics::Object> object) {
+            objects[object->id] = object;
+            collider.addObject(object);
         }
 
         void addModel(std::shared_ptr<Model> &model, bool isDynamic, bool isTrigger, bool isStatic) {
             auto object = std::make_shared<Object>();
-            object-> id = model->id;
+            object->id = model->id;
             object->position = glm::vec3(model->position);
-            object->velocity = glm::vec3(0);
-            object->force = glm::vec3(0);
-            object->mass = 10000.0;
+            object->velocity = glm::vec3(0.0f, 0.0f, 0.0f);
+            object->force = glm::vec3(0.0f, 0.0f, 0.0f);
+            object->mass = 1.0;
             object->model = model;
-            object->gravity = GRAVITY;
+            object->gravity = 0;
             object->isDynamic = isDynamic;
             object->isTrigger = isTrigger;
             object->boundingBox = model->boundingbox;
@@ -71,28 +65,30 @@ namespace physics {
             object->pitch = model->pitch;
             object->yaw = model->yaw;
             object->roll = model->roll;
+            object->plane = nullptr;
             object->isCamera = false;
-            addObject(true, object);
+            addObject(object);
         }
 
         void addCamera(std::shared_ptr<Camera> camera, bool isDynamic, bool isTrigger, bool isStatic) {
             auto object = std::make_shared<Cam>();
             object->position = camera->position;
             object->velocity = glm::vec3(0);
-            object-> id = camera->id;
+            object->id = camera->id;
             object->force = glm::vec3(0);
             object->mass = 1.0f;
-            object->gravity = camera->firstPerson ? GRAVITY : 0.0f;
+            object->gravity = camera->firstPerson ? GRAVITY : 0;
             object->isDynamic = isDynamic;
             object->isTrigger = isTrigger;
             object->isStatic = isStatic;
+            object->plane = nullptr;
             object->isCamera = true;
             object->pitch = camera->options.pitch;
             object->yaw = camera->options.yaw;
             object->camera = camera;
             object->roll = 0.0f;
             object->boundingBox = camera->boundingBox;
-            addObject(false, object);
+            addObject(object);
         }
 
         void cameraIsDynamic(unsigned int cameraid) {
@@ -121,6 +117,7 @@ namespace physics {
             obj->yaw = yaw;
             obj->roll = roll;
         }
+
         void updatePosition(int objId, glm::vec3 position) {
             objects.at(objId)->position = position;
         }
@@ -167,29 +164,43 @@ namespace physics {
             for (auto &bullet: toRemove) {
                 bullets.erase(std::remove(bullets.begin(), bullets.end(), bullet), bullets.end());
             }
-
             for (auto &[id, object]: objects) {
                 if (object->isDynamic) {
-                    if (object->gravity > 0) {
-                        object->force += object->mass * object->gravity;
-                    }
+                    float gravity = object->grounded ? 0 : object->gravity;
+                    object->force.y -= object->mass * gravity;
                     glm::vec3 acceleration = object->force / object->mass;
                     object->velocity += acceleration * dt;
-                    object->velocity *= DAMPENING;
-                    object->position += object->velocity * dt;
 
-                    if (object->planeHeight == 0) {
+
+                    if (object->plane == nullptr) {
                         if (object->position.y < -terrain.GetHeightInterpolated(
-                                object->position.x, object->position.z)) {
+                                object->position.x, object->position.z) + object->height) {
                             object->position.y = -terrain.GetHeightInterpolated(
-                                                     object->position.x, object->position.z) + 2.0f;
+                                                     object->position.x, object->position.z) +
+                                                 object->height;
                             object->velocity.y = 0;
+                            object->grounded = !object->grounded;
+                        } else if (object->position.y > -terrain.GetHeightInterpolated(object->position.x, object->position.z) + object->height + 5.0f) {
+                            object->grounded = !object->grounded;
+                        }
+
+                    } else {
+                        float planeHeightAtPosition = object->plane->position.y;
+                        if (object->position.y < planeHeightAtPosition) {
+                            object->position.y = planeHeightAtPosition + object->height;
+                            object->velocity.y = 0;
+                            object->velocity.y = 0;
+                            object->grounded = !object->grounded;
                         }
                     }
+                    object->velocity *= DAMPENING;
                 } else {
                     object->velocity = glm::vec3(0.0f);
                 }
 
+                if (object->isDynamic) {
+                    object->position += object->velocity;
+                }
 
                 object->updateBB();
                 std::vector<BroadCollision> broadCollisions;
@@ -200,11 +211,13 @@ namespace physics {
                 collider.resolveCollisions(broadCollisions, pObjects, dt);
 
                 object->updateModel();
-                object->force = glm::vec3(0.0f);
-                object->velocity *= DECELERATION;
+                object->force = glm::vec3(0.0f, 0.0f, 0.0f);
+                if (object->isDynamic) {
+                    object->velocity *= DECELERATION;
+                }
 
                 if (glm::length(object->velocity) < ZERO_THRESHOLD) {
-                    object->velocity = glm::vec3(0.0f);
+                    object->velocity = glm::vec3(0.0f, 0.0f, 0.0f);
                 }
             }
         }

@@ -65,8 +65,10 @@ void Terrain::CreateFaultFormation(int terrainSize, int iterations, float minHei
     heightMap.normalize(minHeight, maxHeight);
     for (int x = 0; x < terrainSize; x++) {
         for (int z = 0; z < terrainSize; z++) {
+
             assert(heightMap(x, z) >= minHeight);
             assert(heightMap(x, z) <= maxHeight);
+            heightMap(x, z) = -heightMap(x, z);
         }
     }
 }
@@ -218,6 +220,12 @@ void Terrain::populateBuffer()
 float Terrain::getTerPosition(int x, int z)
 {
     return getHeight(x, z);
+}
+
+void Terrain::renderShadow() {
+    glBindVertexArray(vao);
+    glDrawElements(GL_TRIANGLES, (width - 1) * (height - 1) * 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 }
 void Terrain::render()
 {

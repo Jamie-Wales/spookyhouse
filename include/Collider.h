@@ -13,14 +13,8 @@ class Collider {
 public:
     SweepAndPrune sweepAndPrune;
 
-
-    void addCamera(std::shared_ptr<physics::Object> camera)
-    {
-        sweepAndPrune.addCamera(camera);
-    }
-
-    void addObject(std::shared_ptr<physics::Object> model) {
-        sweepAndPrune.AddObject(model);
+    void addObject(std::shared_ptr<physics::Object> object) {
+        sweepAndPrune.AddObject(object);
     }
 
     void removeObject(std::shared_ptr<Model>& model)
@@ -29,9 +23,9 @@ public:
     }
 
 
-    std::vector<BroadCollision> broadCollide(std::shared_ptr<physics::Object> camera)
+    std::vector<BroadCollision> broadCollide(std::shared_ptr<physics::Object> object)
     {
-        sweepAndPrune.updateObject(camera);
+        sweepAndPrune.updateObject(object);
         auto col = sweepAndPrune.getTrueCollisions();
         return col;
     }

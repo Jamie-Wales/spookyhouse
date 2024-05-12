@@ -12,11 +12,14 @@
 #include <memory>
 
 namespace physics {
+    class Plane;
+
     class Object {
     public:
         int id;
         bool isCamera;
         glm::vec3 position;
+        bool grounded = true;
         glm::vec3 velocity;
         glm::vec3 force;
         float mass;
@@ -30,23 +33,26 @@ namespace physics {
         std::shared_ptr<Model> model;
         std::shared_ptr<Camera> camera;
         std::shared_ptr<BoundingBox> boundingBox;
-        float planeHeight = 0.0f;
+        float height = 0.0f;
+        std::shared_ptr<Plane> plane;
 
         Object()
             : id(id)
               , isCamera(isCamera)
-              , position(0.0f)
-              , velocity(0.0f)
-              , force(0.0f)
+              , position(0.0f, 0.0f, 0.0f)
+              , velocity(0.0f, 0.0f, 0.0f)
+              , force(0.0f, 0.0f, 0.0f)
               , mass(1.0f)
               , gravity(0.0f)
               , isDynamic(false)
-              , isTrigger(false),
-              isStatic(true),
-              pitch(pitch),
-              yaw(yaw),
-              roll(roll),
-              boundingBox() {
+              , isTrigger(false)
+              , isStatic(true)
+              , pitch(pitch)
+              , yaw(yaw)
+              , roll(roll)
+              , height(height)
+              , boundingBox()
+              , plane(nullptr) {
         }
 
         virtual ~Object() = default;
@@ -56,31 +62,13 @@ namespace physics {
                 boundingBox->roll) {
                 boundingBox->pitch = pitch;
                 boundingBox->yaw = yaw;
-                boundingBox->roll = roll;;
+                boundingBox->roll = roll;
                 boundingBox->updateRotation();
                 boundingBox->translate(position - boundingBox->position);
                 boundingBox->updateAABB();
                 boundingBox->position = position;
-                position = position;
-            }
-
-            for (auto &model: model->meshes) {
-                if (model.boundingbox->position != boundingBox->position || model.boundingbox->pitch != boundingBox->
-                    pitch || model.boundingbox->yaw != boundingBox->yaw || model.boundingbox->roll != boundingBox->
-                    roll) {
-                    model.boundingbox->pitch = boundingBox->pitch;
-                    model.boundingbox->yaw = boundingBox->yaw;
-                    model.boundingbox->roll = boundingBox->roll;
-                    model.boundingbox->position = boundingBox->position;
-                    model.boundingbox->updateRotation();
-                    model.boundingbox->updateAABB();
-                    model.boundingbox->translate(position);
-                    model.boundingbox->updateAABB();
-                    model.boundingbox->position = boundingBox->position;
-                }
             }
         }
-
 
         virtual void updateModel() {
             model->position = position;
@@ -109,13 +97,10 @@ namespace physics {
                 if (!other->isStatic) {
                     other->velocity += impulse / other->mass;
                 }
-
                 float penetrationDepth = (sphereA.radius + sphereB.radius) - glm::distance(position, other->position);
-
                 if (!isStatic) {
                     position += (penetrationDepth * collisionNormal) * 0.5f;
                 }
-
                 if (!other->isStatic) {
                     other->position -= (penetrationDepth * collisionNormal) * 0.5f;
                 }
@@ -163,11 +148,11 @@ namespace physics {
         Cam()
             : Object()
               , firstPerson(false) {
-            mass = 1.0f;
             gravity = 0.0f;
             isDynamic = true;
             isStatic = false;
             isTrigger = false;
+            height = 20.0f;
         }
 
         void collide(std::shared_ptr<Object> other) override {
@@ -203,26 +188,74 @@ namespace physics {
             }
         }
 
-
         void updateBB() override {
             if (position != boundingBox->position || pitch != boundingBox->pitch || yaw != boundingBox->yaw || roll !=
                 boundingBox->roll) {
                 boundingBox->pitch = pitch;
                 boundingBox->yaw = yaw;
-                boundingBox->roll = roll;;
+                boundingBox->roll = roll;
                 boundingBox->updateRotation();
                 boundingBox->translate(position - boundingBox->position);
                 boundingBox->updateAABB();
                 boundingBox->position = position;
-                position = position;
             }
         }
-
 
         void updateModel() override {
             camera->position = position;
             camera->options.yaw = pitch;
             camera->options.yaw = yaw;
+        }
+    };
+
+    class Plane : public Object {
+    public:
+        float width;
+        float height;
+        glm::vec3 normal;
+        bool isTerrain;
+
+        Plane(glm::vec3 pos, float w, float h, glm::vec3 n)
+            : Object()
+              , width(w)
+              , height(h)
+              , normal(glm::normalize(n)) {
+            position = pos;
+            mass = 0.0f;
+            isStatic = true;
+            isDynamic = false;
+            isTrigger = false;
+        }
+
+        void updateBB() override {
+            // Update the bounding box for the plane if necessary
+        }
+
+        void updateModel() override {
+            // Update the model properties for the plane if necessary
+        }
+
+        bool checkCollision(const std::shared_ptr<Object>& other) {
+            // Basic collision detection with the plane (point-plane distance check)
+            float distance = glm::dot(other->position - position, normal);
+            return distance <= 0.0f; // Assuming the plane is infinitely thin
+        }
+
+        void resolveCollision(std::shared_ptr<Object> other) {
+            if (checkCollision(other)) {
+                glm::vec3 collisionNormal = normal;
+                float relativeVelocity = glm::dot(other->velocity, collisionNormal);
+                if (relativeVelocity < 0)
+                    return;
+
+                float e = 1.0f; // Coefficient of restitution
+                float j = -(1 + e) * relativeVelocity / (1 / other->mass);
+                glm::vec3 impulse = j * collisionNormal;
+
+                if (!other->isStatic) {
+                    other->velocity += impulse / other->mass;
+                }
+            }
         }
     };
 }

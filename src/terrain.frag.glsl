@@ -38,7 +38,7 @@ void main() {
 }
 
 vec4 CalcTexColor() {
-    float Height = -FragPos.y;
+    float Height = FragPos.y;
     if (Height < gHeight0) {
        return texture(gTextureHeight0, Tex);
     } else if (Height < gHeight1) {
