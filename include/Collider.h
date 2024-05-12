@@ -25,8 +25,10 @@ public:
 
     std::vector<BroadCollision> broadCollide(std::shared_ptr<physics::Object> object)
     {
+
         sweepAndPrune.updateObject(object);
         auto col = sweepAndPrune.getTrueCollisions();
+        sweepAndPrune.printTrueCollisions(col);
         return col;
     }
 
@@ -44,7 +46,9 @@ public:
         for (auto& pair : broadphasePairs) {
             auto& objA = objectMap->at(pair.modelIdA);
             auto& objB = objectMap->at(pair.modelIdB);
+
             objA->collide(objB);
+            objB->collide(objA);
         }
     }
 };

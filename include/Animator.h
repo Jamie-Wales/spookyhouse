@@ -9,6 +9,7 @@
 #include <memory>
 #include <utility>
 #include <utils/Spline.h>
+#include <vector>
 
 class Animation {
     virtual void animate(float delta, std::shared_ptr<Model> model) = 0;
@@ -102,7 +103,7 @@ public:
     }
 };
 
-std::shared_ptr<AnimationCycle> initDoorAnimation(const std::shared_ptr<Model>& cartDoor, const std::shared_ptr<Model>& pipe, const std::shared_ptr<Spline>& spline, std::shared_ptr<Model> cart, const std::vector<shared_ptr<Model>>& splineModels)
+std::shared_ptr<AnimationCycle> initDoorAnimation(const std::shared_ptr<Model>& cartDoor, const std::shared_ptr<Model>& pipe, const std::shared_ptr<Spline>& spline, std::shared_ptr<Model> cart, std::vector<std::shared_ptr<Model>>& splineModels)
 {
     BaseAnimation open(0, [](float delta, const std::shared_ptr<Model>& model) {
         return;

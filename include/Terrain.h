@@ -50,6 +50,8 @@ public:
 
     float GetHeightInterpolated(float x, float z) const
     {
+        x = std::fmax(0, std::fmin(x, terrainSize - 1));
+        z = std::fmax(0, std::fmin(z, terrainSize - 1));
         float X0Z0Height = this->getHeight((int)x, (int)z);
 
         if (((int)x + 1 >= terrainSize) || ((int)z + 1 >= terrainSize)) {

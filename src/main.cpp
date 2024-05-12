@@ -2,6 +2,7 @@
 #include "../imgui/backends/imgui_impl_opengl3.h"
 #include "Camera.h"
 #include "CameraHolder.h"
+#include "Cube.h"
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include "Instance.h"
@@ -298,9 +299,10 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
     glEnable(GL_DEPTH_TEST);
-    Camera fly = Camera{606};
-    Camera fps = Camera{101, true};
-    cameraHolder.addCamera({std::make_shared<Camera>(fps), std::make_shared<Camera>(fly)});
+    auto fly = std::make_shared<Camera>(567);
+    auto fps = std::make_shared<Camera>(566, true);
+
+    cameraHolder.addCamera({fps, fly});
     camera = cameraHolder.getCam();
     CubicSpline cSpline = CubicSpline();
 
@@ -337,20 +339,29 @@ int main() {
         5.0f
     };
     terrain = std::make_shared<Terrain>(ter);
+    auto heady = std::make_shared<Model>("../assets/Enemy/heady.obj", glm::mat4(1.0f),
+                                       glm::vec3(12, -terrain->GetHeightInterpolated(10, 10) + 1.0f, 12), 4100, 412, 0.0,
+                                       0.0, 0.0);
 
+    auto heady2 = std::make_shared<Model>("../assets/Enemy/heady2.obj", glm::mat4(1.0f),
+                                       glm::vec3(15, -terrain->GetHeightInterpolated(10, 10) + 1.0f, 15), 200, 413, 0.0,
+                                       0.0, 0.0);
+    auto slidey = std::make_shared<Model>("../assets/Enemy/slidey.obj", glm::mat4(1.0f),
+                                       camera->position, 414, 0.0,
+                                       0.0, 0.0);
     auto gun = std::make_shared<Model>("../assets/player/pistolbut.obj", glm::mat4(1.0f),
                                        glm::vec3(10, -terrain->GetHeightInterpolated(10, 10) + 1.0f, 10), 1, 0.0,
                                        0.0, 0.0);
     auto scope = std::make_shared<Model>("../assets/player/pistolscope.obj", glm::mat4(1.0f),
                                          glm::vec3(10, -terrain->GetHeightInterpolated(375, 109) + 1.0f, 109), 10, 0.0,
                                          0.0, 0.0);
-    auto platform = std::make_shared<Model>("../assets/house/platform.obj", glm::mat4(1.0f),
-                                            glm::vec3(250.0, (-terrain->GetHeightInterpolated(250.0, 200.0) + 50.0f),
-                                                      200),
-                                            64, 0, 0, 0.0);
+    auto platform = std::make_shared<Model>("../assets/house/plane.obj", glm::mat4(1.0f),
+                                            glm::vec3(300.0, (-terrain->GetHeightInterpolated(250.0, 200.0) + 60.0f),
+                                                      300),
+                                            101, 0, 0, 0.0);
 
     auto house = std::make_shared<Model>("../assets/house/hh.obj", glm::mat4(1.0f),
-                                         glm::vec3(300.0, platform->position.y + 20.0f, 234),
+                                         glm::vec3(300.0, platform->position.y + 50.0f, 234),
                                          60, 90, 90, 0.0);
     auto lampOne = std::make_shared<Model>("../assets/lamps/lampOne.obj", glm::mat4(1.0f),
                                            glm::vec3(416.0f, platform->position.y - 7.0f, 100.0f), 301, 0.0, 0.0,
@@ -363,7 +374,7 @@ int main() {
                                              0.0, 0.0);
 
     auto ladder = std::make_shared<Model>("../assets/house/ladder.obj", glm::mat4(1.0f),
-                                          glm::vec3(130, terrain->GetHeightInterpolated(130, 199) - 20.0f, 199), 65,
+                                          glm::vec3(156, platform->position.y - 10.0f, 203), 65,
                                           0.0, 90, 0.0f);
 
     initMultiTree(amount, 6, 250, 560.0, translations, house->position, *terrain);
@@ -371,22 +382,24 @@ int main() {
                                          glm::vec3(305.2f, house->position.y - 13.0, 177.5f), 111, 3.0, 82.5, -3.0);
     auto cart = std::make_shared<Model>("../assets/cart/cart.obj", glm::mat4(1.0f),
                                         glm::vec3(206.98, track->position.y + 10.0f, 127), 3, 0.0, 80.0, 0.0);
-
     treeOne->initInstanced(translations[0].size(), translations[0]);
     treeTwo->initInstanced(translations[1].size(), translations[1]);
     treeThree->initInstanced(translations[2].size(), translations[2]);
     treeFour->initInstanced(translations[3].size(), translations[3]);
     treeFive->initInstanced(translations[4].size(), translations[4]);
     treeSix->initInstanced(translations[5].size(), translations[5]);
-    world.addCamera(camera, true, false, false);
-    cameraHolder.incrementCurrentCamera();
-    camera = cameraHolder.getCam();
-    world.addCamera(camera, true, false, false);
-    cameraHolder.incrementCurrentCamera();
-    world.addModel(house, false, false, true);
-    world.addModel(cart, false, true, true);
-    world.addModel(gun, false, true, true);
-    world.addModel(ladder, false, true, true);
+    world.addEnemy(heady, 20.0f, 10.0f, 9.8f);
+
+    world.addEnemy(heady2, 20.0f, 10.0f, 9.8f);
+
+    world.addEnemy(slidey, 10.0f, 10.0f, 9.8f);
+    world.addCamera(fps, true, false, false);
+    world.addCamera(fly, true, false, false);
+    world.addModel(house, false, false, true, 30.0f, 10000.0, 0);
+    world.addModel(cart, false, true, true, 5.0f, 10.0f, 0.0f);
+    world.addModel(gun, false, true, true, 5.0f, 1.0f, 0.0f);
+    world.addModel(ladder, false, true, true, 30.0f, 10.0f, 0.0f);
+    world.addPlane(platform);
     // world.addModel(house, false, false, true);
     glm::vec3 s1(207.5f, track->position.y + 2, 133.0f);
     glm::vec3 s2(243.39f, track->position.y + 5.7f, 130.45f); // Added in the gradual rise between s1 and s2
@@ -436,7 +449,7 @@ int main() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) nullptr);
     Renderer renderer{projection, camera, *terrain};
     renderer.enqueue(shader, {
-                         track, house, cart, left, right, gun, scope, platform, treeOne, treeTwo, treeFour, treeFive,
+                           slidey, heady, track, house, cart, left, right, gun, scope, platform, treeOne, treeTwo, treeFour, treeFive,
                          treeSix, lampOne, lampTwo, lampThree, ladder
                      });
     renderer.addLampPointLight(lampOne->position);
@@ -480,6 +493,7 @@ int main() {
             camera->update();
             player.isShooting = false;
         }
+        camera = cameraHolder.getCam();
         renderer.cam = camera;
         renderer.torchPos = player.torch->position;
         renderer.torch = player.torchOn;
@@ -539,6 +553,8 @@ int main() {
             ImGui::NewFrame();
             ImGui::Checkbox("Position or Pitch + Yaw", &position);
             ImGui::Text("FPS %f", 60 / deltaTime);
+            ImGui::Text("Plane postion, X: %f Y: %f Z: %f", platform->position.x, platform->position.y,
+                        platform->position.z);
             ImGui::Text("Camera position, X: %f Y:otherDungeon %f Z: %f", camera->position.x, camera->position.y,
                         camera->position.z);
             ImGui::Text("Camera bb min, X: %f Y: %f Z: %f", camera->boundingBox->min.x, camera->boundingBox->min.y,
@@ -549,7 +565,6 @@ int main() {
                         house->boundingbox->min.z);
             ImGui::Text("house bb max, X: %f Y: %f Z: %f", house->boundingbox->max.x, house->boundingbox->max.y,
                         house->boundingbox->max.z);
-
 
             if (position) {
                 ImGui::Begin("Model Position Controls");
@@ -590,6 +605,7 @@ int main() {
                 positionControl("House", *house);
                 positionControl("Left", *left);
                 positionControl("Right", *right);
+                positionControl("heady", *heady);
                 ImGui::End();
                 ImGui::Render();
             } else {
@@ -662,8 +678,6 @@ int main() {
         renderer.renderAll();
 
         world.tick(deltaTime, *terrain);
-
-
         if (insideCart) {
             auto newPos = cSpline.ConstVelocitySplineAtTime(currentFrameTime * 60);
             auto pitch = calculateYawPitch(cart->position, newPos);
@@ -703,7 +717,6 @@ int main() {
         glBindVertexArray(splineVAO);
         glDrawArrays(GL_LINE_STRIP, 0, sizeof(splinearray));
         glBindVertexArray(0);
-
         processInput(window, terrain);
         if (debug) {
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -742,7 +755,6 @@ void processInput(GLFWwindow *window, const std::shared_ptr<Terrain> &terrain) {
         float force = player.state == PlayerState::State::LADDER ? 30.0f : 10.0f;
         world.applyForce(camera->id, forward * force);
     } else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-
         float force = player.state == PlayerState::State::LADDER ? 30.0f : 10.0f;
         world.applyForce(camera->id, -forward * force);
     } else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
@@ -784,7 +796,6 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn) {
     camera->processMouseMovement(xoffset, yoffset);
     world.updatePyr(camera->id, camera->options.pitch, camera->options.yaw, 0.0f);
 }
-
 
 /*  if (cam.hold[cam.currentCameraIndex].position.x >= model.boundingbox.mMin.x && cam.hold[cam.currentCameraIndex].position.x <= model.boundingbox.mMax.x && cam.hold[cam.currentCameraIndex].position.y >= model.boundingbox.mMin.y && cam.hold[cam.currentCameraIndex].position.y <= model.boundingbox.mMax.y && cam.hold[cam.currentCameraIndex].position.z >= model.boundingbox.mMin.z && cam.hold[cam.currentCameraIndex].position.z <= model.boundingbox.mMax.z) {
 

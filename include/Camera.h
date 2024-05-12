@@ -22,7 +22,8 @@ public:
         IDLE
     };
 
-    void alignWithCamera() {
+    void alignWithCamera()
+    {
         auto nposition = position;
         auto nfront = glm::normalize(front);
 
@@ -43,10 +44,10 @@ public:
 
     std::shared_ptr<BoundingBox> boundingBox;
 
-
     void update();
 
-    glm::vec3 Approach(glm::vec3 target, glm::vec3 current, float dt) {
+    glm::vec3 Approach(glm::vec3 target, glm::vec3 current, float dt)
+    {
         auto difference = target - current;
 
         if (glm::length(difference) > dt)
@@ -56,7 +57,8 @@ public:
         return target;
     }
 
-    float Approach(float target, float current, float delta) {
+    float Approach(float target, float current, float delta)
+    {
         float difference = target - current;
         if (difference > delta)
             return current + delta;
@@ -66,11 +68,11 @@ public:
     }
 
     bool firstPerson;
-    glm::vec3 position{};
-    glm::vec3 front{};
-    glm::vec3 up{};
-    glm::vec3 worldUp{};
-    glm::vec3 right{};
+    glm::vec3 position {};
+    glm::vec3 front {};
+    glm::vec3 up {};
+    glm::vec3 worldUp {};
+    glm::vec3 right {};
 
     glm::vec3 velocity = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 velocityTarget = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -89,21 +91,22 @@ public:
 
     void update(float deltaTime);
 
-    void checkXpos(Terrain &terrain);
+    void checkXpos(Terrain& terrain);
 
     void updateCameraVector();
 
-    struct options options{};
+    struct options options { };
 
-    void updatePosition(float deltaTime, Terrain &terrain);
+    void updatePosition(float deltaTime, Terrain& terrain);
 
-    Camera(int id) {
+    Camera(int id)
+    {
         this->id = id;
         options.maxSpeed = 15.0f;
         firstPerson = false;
-        position = glm::vec3{0.0f, 0.0f, 0.0f};
-        front = glm::vec3{0.0f, 0.0f, -1.0f};
-        up = glm::vec3{0.0f, 1.0f, 0.0f};
+        position = glm::vec3 { 1.0f, 100.0f, 1.0f };
+        front = glm::vec3 { 0.0f, 0.0f, -1.0f };
+        up = glm::vec3 { 0.0f, 1.0f, 0.0f };
         worldUp = up;
         right = glm::normalize(glm::cross(front, worldUp));
         options.pitch = 0.0;
@@ -116,14 +119,13 @@ public:
         update();
     }
 
-
-
-    Camera(int id, bool firstPerson) {
+    Camera(int id, bool firstPerson)
+    {
         this->id = id;
         this->firstPerson = firstPerson;
-        position = glm::vec3{0.0f, 0.0, 3.0f};
-        front = glm::vec3{0.0f, 0.0f, -1.0f};
-        up = glm::vec3{0.0f, 1.0f, 0.0f};
+        position = glm::vec3 { 1.0f, 1.0, 3.0f };
+        front = glm::vec3 { 0.0f, 0.0f, -1.0f };
+        up = glm::vec3 { 0.0f, 1.0f, 0.0f };
         worldUp = up;
         right = glm::normalize(glm::cross(front, worldUp));
         options.pitch = 0.0;
@@ -135,9 +137,10 @@ public:
     }
 
     Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch, float movementSpeed, float mouseSensitivity,
-           float zoom)
-        : position{position}
-          , up{up} {
+        float zoom)
+        : position { position }
+        , up { up }
+    {
         options.pitch = pitch;
         options.yaw = yaw;
         options.mouseSensitivity = mouseSensitivity;
