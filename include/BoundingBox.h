@@ -1,4 +1,3 @@
-
 #ifndef INCLUDE_BOUNDINGBOX_H_
 #define INCLUDE_BOUNDINGBOX_H_
 #define GLM_ENABLE_EXPERIMENTAL
@@ -8,96 +7,104 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <vector>
+
 class BoundingBox {
 public:
-    glm::vec3 position; // Center of the bounding box
-    glm::vec3 min, max; // Min and max corners
+    glm::vec3 position = glm::vec3(0.0f);
+    glm::vec3 min = glm::vec3(0.0f);
+    glm::vec3 max = glm::vec3(0.0f);
     float pitch, yaw, roll = 0;
     glm::mat4 rotation = glm::mat4(1.0f);
     glm::vec3 extents; // Half-dimensions of the box
     glm::vec3 axis[3];
+
     BoundingBox() = default;
-    BoundingBox(const aiAABB& aabb)
-        : position((glm::vec3(aabb.mMin.x, aabb.mMin.y, aabb.mMin.z) + glm::vec3(aabb.mMax.x, aabb.mMax.y, aabb.mMax.z)) * 0.5f)
-        , extents((glm::vec3(aabb.mMax.x, aabb.mMax.y, aabb.mMax.z) - glm::vec3(aabb.mMin.x, aabb.mMin.y, aabb.mMin.z)) * 0.5f)
-        , axis { glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) }
-    {
-    }
 
-    BoundingBox(const glm::vec3& cameraPosition)
+    BoundingBox(const aiAABB &aabb, glm::vec3 pos, float pitch, float yaw, float roll)
+        : position(
+              (glm::vec3(aabb.mMin.x, aabb.mMin.y, aabb.mMin.z) + glm::vec3(aabb.mMax.x, aabb.mMax.y, aabb.mMax.z)) *
+              0.5f)
+          , extents(
+              (glm::vec3(aabb.mMax.x, aabb.mMax.y, aabb.mMax.z) - glm::vec3(aabb.mMin.x, aabb.mMin.y, aabb.mMin.z)) *
+              0.5f)
+          , axis{glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)},
+          min{glm::vec3(aabb.mMin.x, aabb.mMin.y, aabb.mMin.z)}, max{glm::vec3(aabb.mMax.x, aabb.mMax.y, aabb.mMax.z)}, pitch{pitch}, yaw{yaw}, roll
+{roll}{
+    };
+
+
+    BoundingBox(glm::vec3 cameraPosition, float pitch, float yaw, float roll)
         : position(cameraPosition)
-        , extents(glm::vec3(1.0f))
-        , axis { glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) }
-    {
+          , extents(glm::vec3(1.0f))
+          , axis{glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f),},
+          pitch(pitch), yaw(yaw), roll(roll) {
     }
 
-    BoundingBox(BoundingBox& other)
+    BoundingBox(BoundingBox &other)
         : position(other.position)
-        , min(other.min)
-        , max(other.max)
-        , pitch(other.pitch)
-        , yaw(other.yaw)
-        , roll(other.roll)
-        , rotation(other.rotation)
-        , extents(other.extents)
-    {
+          , min(other.min)
+          , max(other.max)
+          , pitch(other.pitch)
+          , yaw(other.yaw)
+          , roll(other.roll)
+          , rotation(other.rotation)
+          , extents(other.extents) {
         for (int i = 0; i < 3; ++i) {
             axis[i] = other.axis[i];
         }
     }
 
-    [[nodiscard]] bool intersects(const BoundingBox& other, float scale = 0.0f) const
-    {
+    [[nodiscard]] bool intersects(const BoundingBox &other, float scale = 0.0f) const {
         glm::vec3 scaledMin = min - glm::vec3(scale);
         glm::vec3 scaledMax = max + glm::vec3(scale);
 
         glm::vec3 otherScaledMin = other.min - glm::vec3(scale);
         glm::vec3 otherScaledMax = other.max + glm::vec3(scale);
 
-        return (scaledMin.x <= otherScaledMax.x && scaledMax.x >= otherScaledMin.x) && (scaledMin.y <= otherScaledMax.y && scaledMax.y >= otherScaledMin.y) && (scaledMin.z <= otherScaledMax.z && scaledMax.z >= otherScaledMin.z);
-    }
-    bool intersects(const glm::vec3& point) const
-    {
-        return (point.x >= min.x && point.x <= max.x) && (point.y >= min.y && point.y <= max.y) && (point.z >= min.z && point.z <= max.z);
+        return (scaledMin.x <= otherScaledMax.x && scaledMax.x >= otherScaledMin.x) && (
+                   scaledMin.y <= otherScaledMax.y && scaledMax.y >= otherScaledMin.y) && (
+                   scaledMin.z <= otherScaledMax.z && scaledMax.z >= otherScaledMin.z);
     }
 
-    void updateRotation()
-    {
+    bool intersects(const glm::vec3 &point) const {
+        return (point.x >= min.x && point.x <= max.x) && (point.y >= min.y && point.y <= max.y) && (
+                   point.z >= min.z && point.z <= max.z);
+    }
+
+    void updateRotation() {
         rotation = glm::rotate(glm::mat4(1.0f), glm::radians(pitch), glm::vec3(1.0f, 0.0f, 0.0f))
-            * glm::rotate(glm::mat4(1.0f), glm::radians(yaw), glm::vec3(0.0f, 1.0f, 0.0f))
-            * glm::rotate(glm::mat4(1.0f), glm::radians(roll), glm::vec3(0.0f, 0.0f, 1.0f));
+                   * glm::rotate(glm::mat4(1.0f), glm::radians(yaw), glm::vec3(0.0f, 1.0f, 0.0f))
+                   * glm::rotate(glm::mat4(1.0f), glm::radians(roll), glm::vec3(0.0f, 0.0f, 1.0f));
         for (int i = 0; i < 3; ++i) {
             axis[i] = glm::normalize(glm::mat3(rotation) * axis[i]);
         }
     }
-    void transform(glm::mat4 mat)
-    {
+
+    void transform(glm::mat4 mat) {
         position = glm::vec3(mat * glm::vec4(position, 1.0f));
         for (int i = 0; i < 3; ++i) {
             axis[i] = glm::normalize(glm::mat3(mat) * axis[i]);
         }
     }
-    void rotate(float dPitch, float dYaw, float dRoll)
-    {
+
+    void rotate(float dPitch, float dYaw, float dRoll) {
         pitch += dPitch;
         yaw += dYaw;
         roll += dRoll;
         updateRotation();
     }
 
-    void updateAABB()
-    {
+    void updateAABB() {
         auto corners = getCorners();
         min = corners[0];
         max = corners[0];
-        for (const auto& corner : corners) {
+        for (const auto &corner: corners) {
             min = glm::min(min, corner);
             max = glm::max(max, corner);
         }
     }
 
-    std::vector<glm::vec3> getCorners() const
-    {
+    std::vector<glm::vec3> getCorners() const {
         std::vector<glm::vec3> corners(8);
         glm::vec3 vertex[8] = {
             glm::vec3(-extents.x, -extents.y, -extents.z),
@@ -116,20 +123,17 @@ public:
         return corners;
     }
 
-    void translate(const glm::vec3 translation)
-    {
+    void translate(const glm::vec3 translation) {
         transform(glm::translate(glm::mat4(1.0f), translation));
     }
 
-    void updateDifference(glm::vec3 diff)
-    {
+    void updateDifference(glm::vec3 diff) {
         diff = diff - position;
         position += diff;
         transform(glm::translate(glm::mat4(1.0f), diff));
     }
 
-    void setCenterFromAABB(const glm::vec3& minVal, const glm::vec3& maxVal)
-    {
+    void setCenterFromAABB(const glm::vec3 &minVal, const glm::vec3 &maxVal) {
         position = (minVal + maxVal) * 0.5f;
         min = minVal;
         max = maxVal;

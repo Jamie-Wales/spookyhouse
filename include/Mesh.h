@@ -34,10 +34,10 @@ public:
     std::vector<vertex> vertices;
     std::vector<unsigned int> indices;
     std::vector<texture> textures;
-    Mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std::vector<texture> textures, aiAABB boundingbox, float pitch, float yaw, float roll, glm::vec3 position);
+    Mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std::vector<texture> textures, aiAABB boundingbox, glm::vec3 position, float pitch, float yaw, float roll);
     Mesh(const Mesh& mesh);
     void draw(Shader& shader);
-    BoundingBox boundingbox;
+    std::shared_ptr<BoundingBox> boundingbox;
     unsigned int VAO, VBO, EBO;
 
 private:

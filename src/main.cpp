@@ -197,7 +197,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         }
     }
     if (key == GLFW_KEY_E && action == GLFW_RELEASE) {
-        for (auto& physobj : world.getTriggers(camera->boundingBox)) {
+        for (auto& physobj : world.getTriggers(*camera->boundingBox)) {
             switch (physobj->model->id) {
             case 1:
             case 2:
@@ -501,7 +501,6 @@ int main()
             renderer.lightningSwitch();
         }
         */
-
         glm::mat4 lightView = glm::lookAt(glm::vec3(-10.0f, 100.0f, -10), glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -545,17 +544,18 @@ int main()
             ImGui::Text("FPS %f", 60 / deltaTime);
             ImGui::Text("Camera position, X: %f Y:otherDungeon %f Z: %f", camera->position.x, camera->position.y,
                 camera->position.z);
-            ImGui::Text("Camera bb min, X: %f Y: %f Z: %f", camera->boundingBox.min.x, camera->boundingBox.min.y,
-                camera->boundingBox.min.z);
-            ImGui::Text("Camera bb max, X: %f Y: %f Z: %f", camera->boundingBox.max.x, camera->boundingBox.max.y,
-                camera->boundingBox.max.z);
-            for (auto& mesh : cart->meshes) {
-                ImGui::Text("house bb min, X: %f Y: %f Z: %f", mesh.boundingbox.min.x, mesh.boundingbox.min.y,
-                    mesh.boundingbox.min.z);
-                ImGui::Text("house bb max, X: %f Y: %f Z: %f", mesh.boundingbox.max.x, mesh.boundingbox.max.y,
-                    mesh.boundingbox.max.z);
-            }
+            ImGui::Text("Camera bb min, X: %f Y: %f Z: %f", camera->boundingBox->min.x, camera->boundingBox->min.y,
+                camera->boundingBox->min.z);
+            ImGui::Text("Camera bb max, X: %f Y: %f Z: %f", camera->boundingBox->max.x, camera->boundingBox->max.y,
+                camera->boundingBox->max.z);
+            for (auto& mesh : house->meshes) {
+                ImGui::Text("house bb min, X: %f Y: %f Z: %f", mesh.boundingbox->min.x, mesh.boundingbox->min.y,
+                    mesh.boundingbox->min.z);
+                ImGui::Text("house bb max, X: %f Y: %f Z: %f", mesh.boundingbox->max.x, mesh.boundingbox->max.y,
+                    mesh.boundingbox->max.z);
 
+std::cout <<  mesh.boundingbox->max.z << " " << mesh.boundingbox->max.y << " " << mesh.boundingbox->max.x;
+            }
             if (position) {
                 ImGui::Begin("Model Position Controls");
                 ImGui::Text("Adjust the position of models:");
@@ -663,7 +663,24 @@ int main()
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderer.renderAll();
+
+
+            for (auto& mesh : house->meshes) {
+                std::cout << "before ->" << std::endl;
+                std::cout <<  mesh.boundingbox->max.z << " " << mesh.boundingbox->max.y << " " << mesh.boundingbox->max.x << std::endl;
+
+                std::cout <<  mesh.boundingbox->min.z << " " << mesh.boundingbox->min.y << " " << mesh.boundingbox->min.x << std::endl;
+            }
         world.tick(deltaTime, *terrain);
+
+
+            for (auto& mesh : house->meshes) {
+                std::cout << "after ->" << std::endl;
+                std::cout <<  mesh.boundingbox->max.z << " " << mesh.boundingbox->max.y << " " << mesh.boundingbox->max.x << std::endl;
+
+                std::cout <<  mesh.boundingbox->min.z << " " << mesh.boundingbox->min.y << " " << mesh.boundingbox->min.x << std::endl;
+            }
+
         if (insideCart) {
             auto newPos = cSpline.ConstVelocitySplineAtTime(currentFrameTime * 60);
             auto pitch = calculateYawPitch(cart->position, newPos);
@@ -674,17 +691,8 @@ int main()
             cart->yaw = pitch.yaw;
             world.updatePosition(3, newPos);
             camera->position = cart->position;
-            camera->options.yaw += yawDif;
-            camera->options.pitch += pitchDif;
-            if (camera->options.pitch > 89.0f) {
-                camera->options.pitch = 89.0f;
-            } else if (camera->options.pitch < -89.0f) {
-                camera->options.pitch = -89.0f;
-            }
-
             camera->update();
             camera->position.y += 5.0f;
-            world.updatePosition(camera->id, camera->position);
         }
         GLenum err;
         while ((err = glGetError()) != GL_NO_ERROR) {
@@ -792,7 +800,9 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     lastX = xpos;
     lastY = ypos;
     camera->processMouseMovement(xoffset, yoffset);
+    world.updatePyr(camera->id, camera->options.pitch, camera->options.yaw, 0.0f);
 }
+
 
 /*  if (cam.hold[cam.currentCameraIndex].position.x >= model.boundingbox.mMin.x && cam.hold[cam.currentCameraIndex].position.x <= model.boundingbox.mMax.x && cam.hold[cam.currentCameraIndex].position.y >= model.boundingbox.mMin.y && cam.hold[cam.currentCameraIndex].position.y <= model.boundingbox.mMax.y && cam.hold[cam.currentCameraIndex].position.z >= model.boundingbox.mMin.z && cam.hold[cam.currentCameraIndex].position.z <= model.boundingbox.mMax.z) {
 

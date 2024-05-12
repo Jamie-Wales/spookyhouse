@@ -17,7 +17,7 @@ class Drawable {
 public:
     virtual void draw(Shader& shader) = 0;
     glm::vec3 position;
-    BoundingBox boundingbox;
+    std::shared_ptr<BoundingBox> boundingbox;
     glm::mat4 translation;
     float pitch;
     float yaw;
@@ -32,7 +32,7 @@ public:
     string directory;
     bool gammaCorrection;
     glm::mat4 translation;
-    BoundingBox boundingbox;
+    std::shared_ptr<BoundingBox> boundingbox;
     glm::vec3 position;
     glm::vec3 origin = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::mat4 rotation;
@@ -54,9 +54,6 @@ public:
 
     {
         loadModel(path);
-        boundingbox.translate(position);
-        boundingbox.rotate(pitch, yaw, roll);
-        boundingbox.updateAABB();
     }
 
     void initInstanced(size_t amount, std::vector<glm::mat4> trans)
@@ -148,7 +145,7 @@ private:
             return;
         }
         directory = path.substr(0, path.find_last_of('/'));
-        this->boundingbox = BoundingBox(scene->mMeshes[0]->mAABB);
+        this->boundingbox = std::make_shared<BoundingBox>(scene->mMeshes[0]->mAABB,position, pitch, yaw, roll);
         processNode(scene->mRootNode, scene);
     }
 
@@ -208,7 +205,7 @@ private:
         textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
         std::vector<texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-        return { vertices, indices, textures, mesh->mAABB, this->pitch, this->yaw, this->roll, this->position };
+        return Mesh{ vertices, indices, textures, mesh->mAABB, this->position, this->pitch, this->yaw, this->roll};
     }
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet.

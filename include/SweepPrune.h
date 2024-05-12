@@ -91,7 +91,7 @@ public:
     {
         auto& vec = modelToSweep[model->id];
         for (auto& sweep : vec) {
-            BoundingBox& bb = sweep->mesh->boundingbox;
+            BoundingBox& bb = *sweep->mesh->boundingbox;
             xEndPoints.erase(std::remove_if(xEndPoints.begin(), xEndPoints.end(), [sweep](EndPoint& ep) {
                 return (ep.mData >> 1) == sweep->id;
             }),
@@ -114,9 +114,10 @@ public:
         for (auto& mesh : objectModel->model->meshes) {
 
             modToId[objectModel->id] = objectModel;
-            BoundingBox box = mesh.boundingbox;
+            BoundingBox& box = *mesh.boundingbox;
             std::shared_ptr<sweepObject> so = std::make_shared<sweepObject>( id, std::make_shared<Mesh>(mesh), nullptr );
-            sweepMap[so->id] = so;
+            sweepMap[id] = so;
+            modToId[id] =objectModel;
             modelToSweep[objectModel->id].push_back(so);
             xEndPoints.emplace_back((id << 1), box.min.x);
             xEndPoints.emplace_back((id << 1) | 1, box.max.x);
@@ -242,64 +243,18 @@ public:
         updateEndpoint(endPoints, maxIndex, false, box, axis);
     }
 
-    void UpdateObject(std::shared_ptr<Model> model)
-    {
-        if (model->position == glm::vec3(0.0f))
-            return;
-
-        auto& vec = modelToSweep[model->id];
-
-        for (auto& sweep : vec) {
-            sweep->mesh->boundingbox.pitch = model->pitch;
-            sweep->mesh->boundingbox.yaw = model->yaw;
-            sweep->mesh->boundingbox.roll = model->roll;
-            sweep->mesh->boundingbox.position = model->position;
-            sweep->mesh->boundingbox.updateRotation();
-            sweep->mesh->boundingbox.updateAABB();
-            /*std::cout << "debug info before update" << sweep->mesh->boundingbox.min.x << " "
-                      << sweep->mesh->boundingbox.min.y << " " << sweep->mesh->boundingbox.min.z << " "
-                      << sweep->mesh->boundingbox.max.x << " " << sweep->mesh->boundingbox.max.y << " "
-                      << sweep->mesh->boundingbox.max.z << std::endl;
-            */
-            sweep->mesh->boundingbox.translate(model->position - sweep->mesh->boundingbox.position);
-            sweep->mesh->boundingbox.updateAABB();
-            /*std::cout << "debug info after update" << sweep->mesh->boundingbox.min.x << " "
-                      << sweep->mesh->boundingbox.min.y << " " << sweep->mesh->boundingbox.min.z << " "
-                      << sweep->mesh->boundingbox.max.x << " " << sweep->mesh->boundingbox.max.y << " "
-                      << sweep->mesh->boundingbox.max.z << std::endl;
-            */
-            sweepEndpoints(xEndPoints, 'x', sweep->id, sweep->mesh->boundingbox);
-            sweepEndpoints(yEndPoints, 'y', sweep->id, sweep->mesh->boundingbox);
-            sweepEndpoints(zEndPoints, 'z', sweep->id, sweep->mesh->boundingbox);
-        }
-    }
-
-    void updateObject(std::shared_ptr<physics::Object> camera) {
+        void updateObject(std::shared_ptr<physics::Object> camera) {
         if (!camera->isCamera) {
             auto& vec = modelToSweep[camera->id];
-
             for (auto& sweep : vec) {
-                sweep->mesh->boundingbox.pitch = camera->pitch;
-                sweep->mesh->boundingbox.yaw = camera->yaw;
-                sweep->mesh->boundingbox.roll = camera->roll;
-                sweep->mesh->boundingbox.position = camera->position;
-                sweep->mesh->boundingbox.updateRotation();
-                sweep->mesh->boundingbox.updateAABB();
-                /*std::cout << "debug info before update" << sweep->mesh->boundingbox.min.x << " "
-                          << sweep->mesh->boundingbox.min.y << " " << sweep->mesh->boundingbox.min.z << " "
-                          << sweep->mesh->boundingbox.max.x << " " << sweep->mesh->boundingbox.max.y << " "
-                          << sweep->mesh->boundingbox.max.z << std::endl;
-                */
-                sweep->mesh->boundingbox.translate(camera->position - sweep->mesh->boundingbox.position);
-                sweep->mesh->boundingbox.updateAABB();
                 /*std::cout << "debug info after update" << sweep->mesh->boundingbox.min.x << " "
                           << sweep->mesh->boundingbox.min.y << " " << sweep->mesh->boundingbox.min.z << " "
                           << sweep->mesh->boundingbox.max.x << " " << sweep->mesh->boundingbox.max.y << " "
                           << sweep->mesh->boundingbox.max.z << std::endl;
                 */
-                sweepEndpoints(xEndPoints, 'x', sweep->id, sweep->mesh->boundingbox);
-                sweepEndpoints(yEndPoints, 'y', sweep->id, sweep->mesh->boundingbox);
-                sweepEndpoints(zEndPoints, 'z', sweep->id, sweep->mesh->boundingbox);
+                sweepEndpoints(xEndPoints, 'x', sweep->id, *sweep->mesh->boundingbox);
+                sweepEndpoints(yEndPoints, 'y', sweep->id, *sweep->mesh->boundingbox);
+                sweepEndpoints(zEndPoints, 'z', sweep->id, *sweep->mesh->boundingbox);
             }
         } else{
             if (camera->position == glm::vec3(0.0f))
@@ -308,7 +263,7 @@ public:
             auto& vec = modelToSweep[camera->id];
 
             for (auto& sweep : vec) {
-                BoundingBox& bb = sweep->camera->boundingBox;
+                BoundingBox& bb =   *sweep->camera->boundingBox;
                 sweepEndpoints(xEndPoints, 'x', sweep->id, bb);
                 sweepEndpoints(yEndPoints, 'y', sweep->id, bb);
                 sweepEndpoints(zEndPoints, 'z', sweep->id, bb);
@@ -321,7 +276,7 @@ public:
         BoundingBox box = *camera->boundingBox;
         std::shared_ptr<sweepObject> so = std::make_shared<sweepObject>(id, nullptr, camera->camera);
         sweepMap[id] = so;
-        modToId[camera->id] = camera;
+        modToId[id] = camera;
         modelToSweep[camera->id].push_back(so);
         xEndPoints.emplace_back((id << 1), box.min.x);
         xEndPoints.emplace_back((id << 1) | 1, box.max.x);
@@ -345,21 +300,17 @@ public:
         }
     }
 
-    std::vector<BroadCollision> getTrueCollisions()
-    {
+    std::vector<BroadCollision> getTrueCollisions() {
         std::vector<BroadCollision> trueCollisions;
         for (const auto& entry : collisionMap) {
             int firstId = entry.first.first;
             int secondId = entry.first.second;
-            auto  firstModelId = modToId[firstId];
-            auto secondModelId = modToId[secondId];
-            if (entry.second.size() == 3 && firstId != secondId && firstModelId != secondModelId) {
-                if (sweepMap[firstId]->camera != nullptr) {
-                    trueCollisions.emplace_back(firstModelId->id, secondModelId->id);
-                }
-            }
+            auto so = modToId[firstId];
+            auto so2 = modToId[secondId];
+            if (entry.second.size() == 3 && so->id != so2->id)
+                trueCollisions.emplace_back(so->id, so2->id);
         }
-        // printTrueCollisions(trueCollisions);
+
         return trueCollisions;
     }
 };

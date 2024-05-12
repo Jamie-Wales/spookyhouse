@@ -27,8 +27,8 @@ public:
         auto nfront = glm::normalize(front);
 
         nposition = nposition + front;
-        boundingBox.min = nposition - 20.0f;
-        boundingBox.max = nposition + 20.0f;
+        boundingBox->min = nposition - 20.0f;
+        boundingBox->max = nposition + 20.0f;
     }
 
     glm::mat4 getCameraView();
@@ -41,7 +41,8 @@ public:
 
     void processKeyboard(Camera::Movement movement, float deltaTime, bool down, std::shared_ptr<Terrain> terrain);
 
-    BoundingBox boundingBox;
+    std::shared_ptr<BoundingBox> boundingBox;
+
 
     void update();
 
@@ -97,7 +98,7 @@ public:
     void updatePosition(float deltaTime, Terrain &terrain);
 
     Camera(int id) {
-        id = id;
+        this->id = id;
         options.maxSpeed = 15.0f;
         firstPerson = false;
         position = glm::vec3{0.0f, 0.0f, 0.0f};
@@ -111,14 +112,14 @@ public:
         options.zoom = 45.0f;
         options.accelerationRate = 1.0f;
         options.velocity = 0.0f;
-        boundingBox = BoundingBox(position);
+        boundingBox = std::make_shared<BoundingBox>(position, options.pitch, options.yaw, 0.0);
         update();
     }
 
 
 
     Camera(int id, bool firstPerson) {
-        id = id;
+        this->id = id;
         this->firstPerson = firstPerson;
         position = glm::vec3{0.0f, 0.0, 3.0f};
         front = glm::vec3{0.0f, 0.0f, -1.0f};
@@ -128,8 +129,7 @@ public:
         options.pitch = 0.0;
         options.yaw = 90.0f;
         options.mouseSensitivity = 0.1;
-
-        boundingBox = BoundingBox(position);
+        boundingBox = std::make_shared<BoundingBox>(position, options.pitch, options.yaw, 0.0);
         options.zoom = 45.0f;
         update();
     }

@@ -65,7 +65,8 @@ namespace physics {
             object->gravity = GRAVITY;
             object->isDynamic = isDynamic;
             object->isTrigger = isTrigger;
-            object->boundingBox = std::make_shared<BoundingBox>(model->boundingbox);
+            object->boundingBox = model->boundingbox;
+            object->model = model;
             object->isStatic = isStatic;
             object->pitch = model->pitch;
             object->yaw = model->yaw;
@@ -90,7 +91,7 @@ namespace physics {
             object->yaw = camera->options.yaw;
             object->camera = camera;
             object->roll = 0.0f;
-            object->boundingBox = std::make_shared<BoundingBox>(camera->boundingBox);
+            object->boundingBox = camera->boundingBox;
             addObject(false, object);
         }
 
@@ -106,14 +107,22 @@ namespace physics {
             objects.erase(object->model->id);
         }
 
+        void updatePyr(int objId, float pitch, float yaw, float roll) {
+            auto obj = objects.at(objId);
+            obj->pitch = pitch;
+            obj->yaw = yaw;
+            obj->roll = roll;
+        }
+
+        void updateAll(int objId, glm::vec3 position, float pitch, float yaw, float roll) {
+            auto obj = objects.at(objId);
+            obj->position = position;
+            obj->pitch = pitch;
+            obj->yaw = yaw;
+            obj->roll = roll;
+        }
         void updatePosition(int objId, glm::vec3 position) {
-            bool found = false;
-            for (auto &[id, object]: objects) {
-                if (id == objId) {
-                    found = true;
-                    object->position = position;
-                }
-            }
+            objects.at(objId)->position = position;
         }
 
         void applyForce(int objId, glm::vec3 force) {
@@ -181,14 +190,10 @@ namespace physics {
                     object->velocity = glm::vec3(0.0f);
                 }
 
-                object->updateBB();
 
+                object->updateBB();
                 std::vector<BroadCollision> broadCollisions;
-                if (object->isCamera) {
-                     broadCollisions = collider.broadCollide(object);
-                } else {
-                   broadCollisions = collider.broadCollide(object->model);
-                }
+                broadCollisions = collider.broadCollide(object);
 
                 std::shared_ptr<std::unordered_map<int, std::shared_ptr<physics::Object> > > pObjects =
                         std::make_shared<std::unordered_map<int, std::shared_ptr<physics::Object> > >(objects);

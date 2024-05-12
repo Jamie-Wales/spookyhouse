@@ -46,22 +46,39 @@ namespace physics {
               pitch(pitch),
               yaw(yaw),
               roll(roll),
-        boundingBox() {
+              boundingBox() {
         }
 
         virtual ~Object() = default;
 
         virtual void updateBB() {
-            model->position = position;
-            model->pitch = pitch;
-            model->yaw = yaw;
+            if (position != boundingBox->position || pitch != boundingBox->pitch || yaw != boundingBox->yaw || roll !=
+                boundingBox->roll) {
+                boundingBox->pitch = pitch;
+                boundingBox->yaw = yaw;
+                boundingBox->roll = roll;;
+                boundingBox->updateRotation();
+                boundingBox->translate(position - boundingBox->position);
+                boundingBox->updateAABB();
+                boundingBox->position = position;
+                position = position;
+            }
 
-            boundingBox->pitch = pitch;
-            boundingBox->yaw = yaw;
-            boundingBox->roll = roll;
-            boundingBox->updateRotation();
-            boundingBox->translate(position - boundingBox->position);
-            boundingBox->updateAABB();
+            for (auto &model: model->meshes) {
+                if (model.boundingbox->position != boundingBox->position || model.boundingbox->pitch != boundingBox->
+                    pitch || model.boundingbox->yaw != boundingBox->yaw || model.boundingbox->roll != boundingBox->
+                    roll) {
+                    model.boundingbox->pitch = boundingBox->pitch;
+                    model.boundingbox->yaw = boundingBox->yaw;
+                    model.boundingbox->roll = boundingBox->roll;
+                    model.boundingbox->position = boundingBox->position;
+                    model.boundingbox->updateRotation();
+                    model.boundingbox->updateAABB();
+                    model.boundingbox->translate(position);
+                    model.boundingbox->updateAABB();
+                    model.boundingbox->position = boundingBox->position;
+                }
+            }
         }
 
 
@@ -142,6 +159,7 @@ namespace physics {
     class Cam : public Object {
     public:
         bool firstPerson;
+
         Cam()
             : Object()
               , firstPerson(false) {
@@ -187,15 +205,17 @@ namespace physics {
 
 
         void updateBB() override {
-            camera->position = position;
-            camera->options.pitch = pitch;
-            camera->options.yaw = yaw;
-            boundingBox->pitch = pitch;
-            boundingBox->yaw = yaw;
-            boundingBox->roll = 0.0;
-            boundingBox->updateRotation();
-            boundingBox->translate(position - boundingBox->position);
-            boundingBox->updateAABB();
+            if (position != boundingBox->position || pitch != boundingBox->pitch || yaw != boundingBox->yaw || roll !=
+                boundingBox->roll) {
+                boundingBox->pitch = pitch;
+                boundingBox->yaw = yaw;
+                boundingBox->roll = roll;;
+                boundingBox->updateRotation();
+                boundingBox->translate(position - boundingBox->position);
+                boundingBox->updateAABB();
+                boundingBox->position = position;
+                position = position;
+            }
         }
 
 

@@ -28,14 +28,6 @@ public:
         sweepAndPrune.removeModel(model);
     }
 
-    std::vector<BroadCollision>
-    broadCollide(std::shared_ptr<Model>& model)
-    {
-        sweepAndPrune.UpdateObject(model);
-        auto col = sweepAndPrune.getTrueCollisions();
-        sweepAndPrune.printTrueCollisions(col);
-        return col;
-    }
 
     std::vector<BroadCollision> broadCollide(std::shared_ptr<physics::Object> camera)
     {
